@@ -1,4 +1,4 @@
-package com.vigil.monitor;
+package com.vigil.alarm;
 
 public enum Status {
     OK,

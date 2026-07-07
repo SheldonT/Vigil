@@ -4,8 +4,8 @@ public class CpuMonitor extends Monitor{
 
     private final SystemMetricsProvider metrics;
 
-    public CpuMonitor(SystemMetricsProvider metrics, double warningHi, double alarmHi, double warningLo, double alarmLo) {
-        super("CPU", warningHi, alarmHi, warningLo, alarmLo);
+    public CpuMonitor(SystemMetricsProvider metrics) {
+        super("CPU");
 
         this.metrics = metrics;
     }
@@ -15,20 +15,20 @@ public class CpuMonitor extends Monitor{
         return metrics.cpuUsage();
     }
 
-    @Override
-    public MonitorResult check() {
-        double value = this.get();
+    // @Override
+    // public AlarmResult check() {
+    //     double value = this.get();
 
-        Status status;
+    //     Status status;
 
-        if (value >= this.getAlarmHi()) {
-            status = Status.HIGH_ALARM;
-        } else if (value >= getWarningHi()) {
-            status = Status.HIGH_WARNING;
-        } else {
-            status = Status.OK;
-        }
+    //     if (value >= this.getAlarmHi()) {
+    //         status = Status.HIGH_ALARM;
+    //     } else if (value >= getWarningHi()) {
+    //         status = Status.HIGH_WARNING;
+    //     } else {
+    //         status = Status.OK;
+    //     }
 
-        return new MonitorResult(getName(), value, status);
-    }
+    //     return new AlarmResult(getName(), value, status);
+    // }
 }

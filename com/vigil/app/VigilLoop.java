@@ -1,23 +1,25 @@
 package com.vigil.app;
 
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.logging.*;
 
 import com.vigil.monitor.Monitor;
-import com.vigil.monitor.MonitorResult;
-import com.vigil.monitor.Status;
+import com.vigil.alarm.AlarmConfig;
+import com.vigil.alarm.AlarmEngine;
+import com.vigil.alarm.AlarmResult;
 
 public class VigilLoop {
     
     private boolean runLoop = true;
-    private final List<Monitor> monitors;
 
     private final Logger logger;
 
-    public VigilLoop(List<Monitor> monitors){
-        this.monitors = monitors;
+    private final AlarmEngine alarmEngine;
+
+    public VigilLoop(List<Monitor> monitors, Map<String, AlarmConfig> alarmConfigs){
+
+        this.alarmEngine = new AlarmEngine(monitors, alarmConfigs);
 
         this.logger = Logger.getLogger("Vigil");
 
@@ -51,24 +53,16 @@ public class VigilLoop {
         try {
             System.out.println("Starting Vigil...");
 
-            Map<String, Status> lastStatusMap = new HashMap<>();
+            //AlarmEngine alarmEngine = new AlarmEngine(monitors, alarmConfigs);
 
             while(runLoop){
-                
-                for (Monitor m : monitors){
 
-                    MonitorResult result = m.check();
+                List<AlarmResult> events = alarmEngine.evaluate();
 
-                    Status last = lastStatusMap.getOrDefault(result.name, Status.OK);
-
-
-                    if (result.status != last) {
-                        this.logger.info(
-                            result.name + " changed: " + last + " → " + result.status + " : " + result.value
-                        );
-
-                        lastStatusMap.put(result.name, result.status);
-                    }
+                for(AlarmResult result : events){
+                    this.logger.info(
+                        result.timestampNow + " | " + result.name + " " + result.status + " : " + result.value
+                    );
                 }
                 
                 this.sleep(1);
