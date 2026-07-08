@@ -23,16 +23,16 @@ public class VigilClient {
         Map<String, AlarmConfig> alarmConfigs = new HashMap<>();
 
         alarmConfigs.put("CPU", new AlarmConfig("CPU",
-                       15.0,
-                       2,
-                       20.0,
-                       2,
-                       0,
-                       1,
-                       0,
-                       1,
+                       85.0,
+                       84.0,
+                       90.0,
+                       89.0,
                        5,
-                       5)
+                       6,
+                       2,
+                       1,
+                       3000,
+                       3000)
         );
 
         VigilLoop mainLoop = new VigilLoop(monitors, alarmConfigs);

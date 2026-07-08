@@ -39,10 +39,9 @@ public class VigilLoop {
         }
     }
 
-    private void sleep (int seconds) {
+    private void sleep (int ms) {
         try {
-            int s = seconds * 1000;
-            Thread.sleep(s);
+            Thread.sleep(ms);
         } catch(Exception e) {
             this.logger.warning(e + "while sleeping");
         }
@@ -65,7 +64,7 @@ public class VigilLoop {
                     );
                 }
                 
-                this.sleep(1);
+                this.sleep(500);
             }
         } catch (Exception e) {
             System.out.println(e);
