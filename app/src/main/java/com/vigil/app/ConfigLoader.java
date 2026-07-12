@@ -15,8 +15,9 @@ import org.tomlj.TomlTable;
 import com.vigil.monitor.Monitor;
 import com.vigil.alarm.AlarmConfig;
 import com.vigil.monitor.CpuMonitor;
+import com.vigil.monitor.ProcessCpuUsage;
 import com.vigil.monitor.MemoryMonitor;
-
+import com.vigil.monitor.SystemLoadAverage;
 import com.vigil.monitor.JvmSystemMetricsProvider;
 import com.vigil.monitor.SystemMetricsProvider;
 
@@ -47,6 +48,12 @@ public class ConfigLoader {
                     break;
                 case "Memory":
                     monitorObj.add(new MemoryMonitor(this.provider));
+                    break;
+                case "ProcessCpuUsage":
+                    monitorObj.add(new ProcessCpuUsage(this.provider));
+                    break;
+                case "SystemLoadAverage":
+                    monitorObj.add(new SystemLoadAverage(this.provider));
                     break;
                 default:
                     throw new IllegalArgumentException("Unknown monitor type: " + monitorName);
