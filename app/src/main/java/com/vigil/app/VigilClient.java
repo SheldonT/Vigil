@@ -2,46 +2,30 @@ package com.vigil.app;
 
 import java.util.List;
 import java.util.Map;
-import java.util.HashMap;
 
 import com.vigil.monitor.Monitor;
-import com.vigil.monitor.CpuMonitor;
-import com.vigil.monitor.JvmSystemMetricsProvider;
-import com.vigil.monitor.SystemMetricsProvider;
 import com.vigil.alarm.AlarmConfig;
+
 
 public class VigilClient {
 
     public static void main(String[] args) {
 
-        SystemMetricsProvider provider = new JvmSystemMetricsProvider();
+        try{
+            //load the config file
+            ConfigLoader loader = new ConfigLoader("config.toml");
 
-        List<Monitor> monitors = List.of(
-            new CpuMonitor(provider)
-        );
+            //build a list of monitors
+            List<Monitor> monitors = loader.buildMonitors();
+            //build a Map of alarm configs
+            Map<String, AlarmConfig> alarmConfigs = loader.buildAlarmConfigs();
 
-        Map<String, AlarmConfig> alarmConfigs = new HashMap<>();
+            VigilLoop mainLoop = new VigilLoop(monitors, alarmConfigs);
 
-        alarmConfigs.put("CPU", new AlarmConfig("CPU",
-                       85.0,
-                       84.0,
-                       90.0,
-                       89.0,
-                       5,
-                       6,
-                       2,
-                       1,
-                       3000,
-                       3000)
-        );
-
-        VigilLoop mainLoop = new VigilLoop(monitors, alarmConfigs);
-
-        try {
             mainLoop.start();
 
         } catch (Exception e) {
-            System.out.println(e);
+            e.printStackTrace();
         }
         finally {
             //clean up logic here.
