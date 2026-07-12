@@ -25,9 +25,20 @@ public class JvmSystemMetricsProvider implements SystemMetricsProvider {
     @Override
     public double memoryUsage() {
         long total = os.getTotalMemorySize();
-        long free = os.getFreeMemorySize();
-        
-        return ((double)(total - free) / total) * 100;
+        long available = memAvailable();
+        return ((double)(total - available) / total) * 100;
+    }
+
+    private long memAvailable() {
+        try {
+            for (String line : java.nio.file.Files.readAllLines(java.nio.file.Path.of("/proc/meminfo"))) {
+                if (line.startsWith("MemAvailable:")) {
+                    // format: "MemAvailable:   7204852 kB"
+                    return Long.parseLong(line.split("\\s+")[1]) * 1024;
+                }
+            }
+        } catch (Exception ignored) {}
+        return os.getFreeMemorySize();
     }
 
     @Override

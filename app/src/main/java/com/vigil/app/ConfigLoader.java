@@ -15,28 +15,12 @@ import org.tomlj.TomlTable;
 import com.vigil.monitor.Monitor;
 import com.vigil.alarm.AlarmConfig;
 import com.vigil.monitor.CpuMonitor;
+import com.vigil.monitor.MemoryMonitor;
 
 import com.vigil.monitor.JvmSystemMetricsProvider;
 import com.vigil.monitor.SystemMetricsProvider;
 
 public class ConfigLoader {
-
-    // private final String configName;
-
-    // private final double highWarning;
-    // private final double highWarningClear;
-
-    // private final double highAlarm;
-    // private final double highAlarmClear;
-
-    // private final double lowWarning;
-    // private final double lowWarningClear;
-
-    // private final double lowAlarm;
-    // private final double lowAlarmClear;
-
-    // private final long activationDelayMs;
-    // private final long clearDelayMs;
 
     private final TomlParseResult config;
     private final SystemMetricsProvider provider;
@@ -60,6 +44,9 @@ public class ConfigLoader {
             switch(monitorName){
                 case "CPU":
                     monitorObj.add(new CpuMonitor(this.provider));
+                    break;
+                case "Memory":
+                    monitorObj.add(new MemoryMonitor(this.provider));
                     break;
                 default:
                     throw new IllegalArgumentException("Unknown monitor type: " + monitorName);
