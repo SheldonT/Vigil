@@ -42,7 +42,7 @@ public class ConfigLoader {
     private final SystemMetricsProvider provider;
     
     public ConfigLoader(String configFile) throws IOException{
-            InputStream configStream = VigilClient.class.getResourceAsStream("/" + configFile);
+            InputStream configStream = new java.io.FileInputStream(configFile);
             this.config = Toml.parse(configStream);
 
             this.provider = new JvmSystemMetricsProvider();

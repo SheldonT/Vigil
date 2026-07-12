@@ -11,9 +11,14 @@ public class VigilClient {
 
     public static void main(String[] args) {
 
+        if (args.length == 0) {
+            System.err.println("Usage: vigil <path/to/config.toml>");
+            return;
+        }
+
         try{
             //load the config file
-            ConfigLoader loader = new ConfigLoader("config.toml");
+            ConfigLoader loader = new ConfigLoader(args[0]);
 
             //build a list of monitors
             List<Monitor> monitors = loader.buildMonitors();

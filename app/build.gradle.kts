@@ -8,6 +8,7 @@
 plugins {
     // Apply the application plugin to add support for building a CLI application in Java.
     application
+    id("com.gradleup.shadow") version "9.0.0"
 }
 
 repositories {
@@ -41,4 +42,10 @@ application {
 tasks.named<Test>("test") {
     // Use JUnit Platform for unit tests.
     useJUnitPlatform()
+}
+
+tasks.shadowJar {
+    archiveBaseName.set("vigil")
+    archiveClassifier.set("")
+    archiveVersion.set("")
 }
