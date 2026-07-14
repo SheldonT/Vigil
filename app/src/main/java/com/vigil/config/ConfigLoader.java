@@ -1,12 +1,11 @@
-package com.vigil.app;
+package com.vigil.config;
 
 import java.io.InputStream;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.List;
 import java.util.ArrayList;
-import java.io.IOException; // Required import
-
+import java.io.IOException;
 
 import org.tomlj.Toml;
 import org.tomlj.TomlParseResult;
@@ -18,19 +17,19 @@ import com.vigil.monitor.CpuMonitor;
 import com.vigil.monitor.ProcessCpuUsage;
 import com.vigil.monitor.MemoryMonitor;
 import com.vigil.monitor.SystemLoadAverage;
-import com.vigil.monitor.JvmSystemMetricsProvider;
 import com.vigil.monitor.SystemMetricsProvider;
+import com.vigil.app.LoggerConfig;
 
 public class ConfigLoader {
 
     private final TomlParseResult config;
     private final SystemMetricsProvider provider;
     
-    public ConfigLoader(String configFile) throws IOException{
+    public ConfigLoader(String configFile, SystemMetricsProvider provider) throws IOException{
             InputStream configStream = new java.io.FileInputStream(configFile);
             this.config = Toml.parse(configStream);
 
-            this.provider = new JvmSystemMetricsProvider();
+            this.provider = provider;
     }
 
     public List<Monitor> buildMonitors(){
@@ -40,7 +39,9 @@ public class ConfigLoader {
 
         for (Map.Entry<String, Object> entry : monitors.entrySet()) {
 
-            String monitorName = entry.getKey();
+            TomlTable monitorTable = (TomlTable)entry.getValue();
+
+            String monitorName = monitorTable.getString("type");
 
             switch(monitorName){
                 case "CPU":
@@ -70,39 +71,20 @@ public class ConfigLoader {
 
         for (Map.Entry<String, Object> entry : monitors.entrySet()) {
 
-            String monitorName = entry.getKey();
+            TomlTable monitorTable = (TomlTable)entry.getValue();
+            String monitorName = monitorTable.getString("type");
+            TomlTable alarmTable = monitorTable.getTable("alarm");
 
-            TomlTable alarmSetPoints = monitors.getTable(monitorName + ".alarm");
-
-            double highWarning = alarmSetPoints.getDouble("highWarning");
-            double highWarningClear = alarmSetPoints.getDouble("highWarningClear");
-
-            double highAlarm = alarmSetPoints.getDouble("highAlarm");
-            double highAlarmClear = alarmSetPoints.getDouble("highAlarmClear");
-
-            double lowWarning = alarmSetPoints.getDouble("lowWarning");
-            double lowWarningClear = alarmSetPoints.getDouble("lowWarningClear");
-
-            double lowAlarm = alarmSetPoints.getDouble("lowAlarm");
-            double lowAlarmClear = alarmSetPoints.getDouble("lowAlarmClear");
-
-            long activationDelayMs = alarmSetPoints.getLong("activationDelayMs");
-            long clearDelayMs = alarmSetPoints.getLong("clearDelayMs");
-
-            alarmConfigs.put(monitorName, new AlarmConfig(monitorName,
-                       highWarning,
-                       highWarningClear,
-                       highAlarm,
-                       highAlarmClear,
-                       lowWarning,
-                       lowWarningClear,
-                       lowAlarm,
-                       lowAlarmClear,
-                       activationDelayMs,
-                       clearDelayMs));
+            alarmConfigs.put(monitorName, AlarmConfig.fromToml(monitorName, alarmTable));
         }
 
         return alarmConfigs;
      }
 
+     public void buildLogger() throws IOException{
+
+        TomlTable loggerConfig = config.getTable("logging");
+
+        LoggerConfig.fromToml(loggerConfig);
+     }
 }

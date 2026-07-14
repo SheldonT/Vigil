@@ -1,5 +1,8 @@
 package com.vigil.alarm;
 
+import org.tomlj.TomlTable;
+import com.vigil.exception.InvalidConfigurationException;
+
 public class AlarmConfig {
 
     private final String monitorName;
@@ -19,7 +22,7 @@ public class AlarmConfig {
     private final long activationDelayMs;
     private final long clearDelayMs;
 
-    public AlarmConfig(String name,
+    private AlarmConfig(String name,
                        double highWarn,
                        double highWarnClear,
                        double highAlarm,
@@ -47,6 +50,74 @@ public class AlarmConfig {
 
         this.activationDelayMs = activationDelayMs;
         this.clearDelayMs = clearDelayMs;
+    }
+
+    private static double requireDouble(TomlTable table, String monitorId, String key) {
+        Double value = table.getDouble(key);
+        if (value == null) {
+            throw new IllegalArgumentException("Missing required double field 'highWarning' in alarm configuration for monitor '" + monitorId + "'");
+        }
+        return value;
+    }
+
+    private static long requireLong(TomlTable table, String monitorId, String key) {
+        Long value = table.getLong(key);
+        if (value == null) {
+            throw new IllegalArgumentException("Missing required long field 'highWarning' in alarm configuration for monitor '" + monitorId + "'");
+        }
+        return value;
+    }
+
+    private void validate() {
+        if (this.lowAlarm > this.lowAlarmClear){
+            throw new InvalidConfigurationException("Low Alarm Clear setpoint must be greater than or equal to Low Alarm setpoint (" + this.monitorName + ")!");
+        }
+        if (this.lowWarning > this.lowWarningClear){
+            throw new InvalidConfigurationException("Low Warning Clear setpoint must be greater than or equal to Low Warning setpoint (" + this.monitorName + ")!");
+        }
+        if (this.highAlarm < this.highAlarmClear){
+            throw new InvalidConfigurationException("High Alarm Clear setpoint must be less than or equal to High Alarm setpoint (" + this.monitorName + ")!");
+        }
+        if (this.highWarning < this.highWarningClear){
+            throw new InvalidConfigurationException("High Warning Clear setpoint must be less than or equal to High Warning setpoint (" + this.monitorName + ")!");
+        }
+        if (this.lowAlarm > this.lowWarning) {
+            throw new InvalidConfigurationException("Low Alarm setpoint must be less than Low Warning setpoing (" + this.monitorName + ")!");
+        }
+        if (this.highAlarm < this.highWarning) {
+            throw new InvalidConfigurationException("High Alarm setpoint must be greater than High Warning setpoing (" + this.monitorName + ")!");
+        }
+        if (this.lowWarning >= this.highWarning) {
+            throw new InvalidConfigurationException( "Low Warning must be less than High Warning (" + monitorName + ")!");
+        }
+        if (this.lowAlarm >= this.highAlarm) {
+            throw new InvalidConfigurationException( "Low Alarm must be less than High Alarm (" + monitorName + ")!");
+        }
+        if (this.activationDelayMs < 0) {
+            throw new InvalidConfigurationException( "Activation Delay (ms) must be greater than 0 (" + monitorName + ")!");
+        }
+
+        if (this.clearDelayMs < 0) {
+            throw new InvalidConfigurationException( "Clear Delay (ms) must be greater than 0 (" + monitorName + ")!");
+        }
+    }
+
+    public static AlarmConfig fromToml(String id, TomlTable table) {
+        AlarmConfig config =  new AlarmConfig(id,
+                       requireDouble(table, id, "highWarning"),
+                       requireDouble(table, id, "highWarningClear"),
+                       requireDouble(table, id, "highAlarm"),
+                       requireDouble(table, id, "highAlarmClear"),
+                       requireDouble(table, id, "lowWarning"),
+                       requireDouble(table, id, "lowWarningClear"),
+                       requireDouble(table, id, "lowAlarm"),
+                       requireDouble(table, id, "lowAlarmClear"),
+                       requireLong(table, id, "activationDelayMs"),
+                       requireLong(table, id, "clearDelayMs"));
+
+        config.validate();
+
+        return config;
     }
 
     public String getMonitorName() {

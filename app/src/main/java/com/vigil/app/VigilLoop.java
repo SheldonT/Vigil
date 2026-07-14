@@ -2,7 +2,7 @@ package com.vigil.app;
 
 import java.util.List;
 import java.util.Map;
-import java.util.logging.*;
+import java.util.logging.Logger;
 
 import com.vigil.monitor.Monitor;
 import com.vigil.alarm.AlarmConfig;
@@ -13,7 +13,7 @@ public class VigilLoop {
     
     private boolean runLoop = true;
 
-    private final Logger logger;
+    private static final Logger logger = Logger.getLogger(VigilLoop.class.getName());
 
     private final AlarmEngine alarmEngine;
 
@@ -21,29 +21,29 @@ public class VigilLoop {
 
         this.alarmEngine = new AlarmEngine(monitors, alarmConfigs);
 
-        this.logger = Logger.getLogger("Vigil");
+        // this.logger = Logger.getLogger("Vigil");
 
-        try {
-            FileHandler fileHandler = new FileHandler(
-                "vigil.log",
-                1024 * 1024,  // 1MB per file
-                5             // keep 5 rotated logs
-            );
+        // try {
+        //     FileHandler fileHandler = new FileHandler(
+        //         "vigil_events.log",
+        //         1024 * 1024,  // 1MB per file
+        //         5             // keep 5 rotated logs
+        //     );
 
-            fileHandler.setFormatter(new SimpleFormatter());
-            this.logger.addHandler(fileHandler);
-            this.logger.setUseParentHandlers(false);
+        //     fileHandler.setFormatter(new SimpleFormatter());
+        //     this.logger.addHandler(fileHandler);
+        //     this.logger.setUseParentHandlers(false);
 
-        } catch (Exception e) {
-            System.out.println(e);
-        }
+        // } catch (Exception e) {
+        //     System.out.println(e);
+        // }
     }
 
     private void sleep (int ms) {
         try {
             Thread.sleep(ms);
         } catch(Exception e) {
-            this.logger.warning(e + "while sleeping");
+            logger.warning(e + "while sleeping");
         }
     }
 
@@ -59,7 +59,7 @@ public class VigilLoop {
                 List<AlarmResult> events = alarmEngine.evaluate();
 
                 for(AlarmResult result : events){
-                    this.logger.info(
+                    logger.info(
                         result.timestampNow + " | " + result.name + " " + result.status + " : " + result.value
                     );
                 }
