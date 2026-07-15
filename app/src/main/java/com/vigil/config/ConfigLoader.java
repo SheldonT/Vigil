@@ -1,47 +1,58 @@
 package com.vigil.config;
 
-import java.io.InputStream;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.List;
 import java.util.ArrayList;
 import java.io.IOException;
 
-import org.tomlj.Toml;
-import org.tomlj.TomlParseResult;
-import org.tomlj.TomlTable;
-
 import com.vigil.monitor.Monitor;
 import com.vigil.alarm.AlarmConfig;
+import com.vigil.app.LoggerConfig;
+import com.vigil.exception.InvalidConfigurationException;
 import com.vigil.monitor.CpuMonitor;
 import com.vigil.monitor.ProcessCpuUsage;
 import com.vigil.monitor.MemoryMonitor;
 import com.vigil.monitor.SystemLoadAverage;
 import com.vigil.monitor.SystemMetricsProvider;
-import com.vigil.app.LoggerConfig;
 
 public class ConfigLoader {
 
-    private final TomlParseResult config;
+    private final Map<String, Object> config;
     private final SystemMetricsProvider provider;
     
-    public ConfigLoader(String configFile, SystemMetricsProvider provider) throws IOException{
-            InputStream configStream = new java.io.FileInputStream(configFile);
-            this.config = Toml.parse(configStream);
+    public ConfigLoader(Map<String, Object> config, SystemMetricsProvider provider) throws IOException{
+
+            this.config = config;
 
             this.provider = provider;
     }
 
+    @SuppressWarnings("unchecked")
+    private static Map<String, Object> requireMap(
+            Object value,
+            String description) {
+
+        if (!(value instanceof Map<?, ?> map)) {
+            throw new InvalidConfigurationException(
+                description + " must be a table."
+            );
+        }
+
+        return (Map<String, Object>) map;
+    }
+
     public List<Monitor> buildMonitors(){
 
-        TomlTable monitors = config.getTable("monitor");
+        Map<String, Object> monitors = requireMap(this.config.get("monitor"), "Monitors Map");
+
         List<Monitor> monitorObj = new ArrayList<>();
 
         for (Map.Entry<String, Object> entry : monitors.entrySet()) {
 
-            TomlTable monitorTable = (TomlTable)entry.getValue();
+            Map<String, Object> monitorTable = requireMap(entry.getValue(), "Single Monitor Map");
 
-            String monitorName = monitorTable.getString("type");
+            String monitorName = (String) monitorTable.get("type");
 
             switch(monitorName){
                 case "CPU":
@@ -66,16 +77,18 @@ public class ConfigLoader {
 
     public Map<String, AlarmConfig> buildAlarmConfigs(){
 
-        TomlTable monitors = config.getTable("monitor");
+        Map<String, Object> monitors = requireMap(config.get("monitor"), "Alarm Config Map");
         Map<String, AlarmConfig> alarmConfigs = new HashMap<>();
 
         for (Map.Entry<String, Object> entry : monitors.entrySet()) {
 
-            TomlTable monitorTable = (TomlTable)entry.getValue();
-            String monitorName = monitorTable.getString("type");
-            TomlTable alarmTable = monitorTable.getTable("alarm");
+            Map<String, Object> monitorTable = requireMap(entry.getValue(), "Monitor Table");
 
-            alarmConfigs.put(monitorName, AlarmConfig.fromToml(monitorName, alarmTable));
+            String monitorName = (String) monitorTable.get("type");
+            Map<String, Object> alarmTable = requireMap(monitorTable.get("alarm"), "Alarm Map");
+
+            
+            alarmConfigs.put(monitorName, AlarmConfig.fromMap(monitorName, alarmTable));
         }
 
         return alarmConfigs;
@@ -83,8 +96,8 @@ public class ConfigLoader {
 
      public void buildLogger() throws IOException{
 
-        TomlTable loggerConfig = config.getTable("logging");
+        Map<String, Object> loggerConfig = requireMap(config.get("logging"), "Logging Settings");
 
-        LoggerConfig.fromToml(loggerConfig);
+        LoggerConfig.fromMap(loggerConfig);
      }
 }

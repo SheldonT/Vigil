@@ -1,5 +1,7 @@
 package com.vigil.alarm;
 
+import java.util.Map;
+
 import org.tomlj.TomlTable;
 import com.vigil.exception.InvalidConfigurationException;
 
@@ -68,6 +70,23 @@ public class AlarmConfig {
         return value;
     }
 
+    private static double mapRequireDouble(Map<String, Object> table, String monitorId, String key) {
+        Double value = (Double)table.get(key);
+        if (value == null) {
+            throw new IllegalArgumentException("Missing required double field 'highWarning' in alarm configuration for monitor '" + monitorId + "'");
+        }
+        return value;
+    }
+
+    private static long mapRequireLong(Map<String, Object> table, String monitorId, String key) {
+        
+        Long value = (Long)table.get(key);
+        if (value == null) {
+            throw new IllegalArgumentException("Missing required long field 'highWarning' in alarm configuration for monitor '" + monitorId + "'");
+        }
+        return value;
+    }
+
     private void validate() {
         if (this.lowAlarm > this.lowAlarmClear){
             throw new InvalidConfigurationException("Low Alarm Clear setpoint must be greater than or equal to Low Alarm setpoint (" + this.monitorName + ")!");
@@ -114,6 +133,24 @@ public class AlarmConfig {
                        requireDouble(table, id, "lowAlarmClear"),
                        requireLong(table, id, "activationDelayMs"),
                        requireLong(table, id, "clearDelayMs"));
+
+        config.validate();
+
+        return config;
+    }
+
+    public static AlarmConfig fromMap(String id, Map<String, Object> table) {
+        AlarmConfig config =  new AlarmConfig(id,
+                       mapRequireDouble(table, id, "highWarning"),
+                       mapRequireDouble(table, id, "highWarningClear"),
+                       mapRequireDouble(table, id, "highAlarm"),
+                       mapRequireDouble(table, id, "highAlarmClear"),
+                       mapRequireDouble(table, id, "lowWarning"),
+                       mapRequireDouble(table, id, "lowWarningClear"),
+                       mapRequireDouble(table, id, "lowAlarm"),
+                       mapRequireDouble(table, id, "lowAlarmClear"),
+                       mapRequireLong(table, id, "activationDelayMs"),
+                       mapRequireLong(table, id, "clearDelayMs"));
 
         config.validate();
 

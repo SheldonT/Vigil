@@ -8,6 +8,7 @@ import com.vigil.monitor.Monitor;
 import com.vigil.alarm.AlarmConfig;
 import com.vigil.config.ConfigLoader;
 import com.vigil.monitor.SystemMetricsProvider;
+import com.vigil.config.TomlReader;
 
 
 public class VigilClient {
@@ -24,7 +25,10 @@ public class VigilClient {
             SystemMetricsProvider provider = new JvmSystemMetricsProvider();
 
             //load the config file
-            ConfigLoader loader = new ConfigLoader(args[0], provider);
+
+            Map<String, Object> parseToml = new TomlReader(args[0]).getRoot();
+
+            ConfigLoader loader = new ConfigLoader(parseToml, provider);
 
             //build a list of monitors
             List<Monitor> monitors = loader.buildMonitors();
