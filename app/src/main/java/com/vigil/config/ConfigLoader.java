@@ -10,11 +10,10 @@ import com.vigil.monitor.Monitor;
 import com.vigil.alarm.AlarmConfig;
 import com.vigil.app.LoggerConfig;
 import com.vigil.exception.InvalidConfigurationException;
-import com.vigil.monitor.CpuMonitor;
-import com.vigil.monitor.ProcessCpuUsage;
-import com.vigil.monitor.MemoryMonitor;
-import com.vigil.monitor.SystemLoadAverage;
 import com.vigil.monitor.SystemMetricsProvider;
+import com.vigil.factory.MonitorFactory;
+import com.vigil.factory.DispatcherFactory;
+import com.vigil.dispatcher.Dispatcher;
 
 public class ConfigLoader {
 
@@ -51,25 +50,9 @@ public class ConfigLoader {
         for (Map.Entry<String, Object> entry : monitors.entrySet()) {
 
             Map<String, Object> monitorTable = requireMap(entry.getValue(), "Single Monitor Map");
+            String monitorType = (String)monitorTable.get("type");
 
-            String monitorName = (String) monitorTable.get("type");
-
-            switch(monitorName){
-                case "CPU":
-                    monitorObj.add(new CpuMonitor(this.provider));
-                    break;
-                case "Memory":
-                    monitorObj.add(new MemoryMonitor(this.provider));
-                    break;
-                case "ProcessCpuUsage":
-                    monitorObj.add(new ProcessCpuUsage(this.provider));
-                    break;
-                case "SystemLoadAverage":
-                    monitorObj.add(new SystemLoadAverage(this.provider));
-                    break;
-                default:
-                    throw new IllegalArgumentException("Unknown monitor type: " + monitorName);
-            }
+            monitorObj.add(MonitorFactory.create(monitorType, provider));
         }
 
         return monitorObj;
@@ -92,6 +75,19 @@ public class ConfigLoader {
         }
 
         return alarmConfigs;
+     }
+
+     public List<Dispatcher> buildDispatchers(){
+            Map<String, Object> dispatchers = requireMap(config.get("dispatcher"), "Dispatcher Config Map");
+            List<Dispatcher> dispatcherObj = new ArrayList<>();
+
+            for (Map.Entry<String, Object> entry : dispatchers.entrySet()) {
+                Map<String, Object> dispatcher = requireMap(entry.getValue(), "Dispatcher Settings");
+
+                dispatcherObj.add(DispatcherFactory.create(dispatcher));
+            }
+
+            return dispatcherObj;
      }
 
      public void buildLogger() throws IOException{

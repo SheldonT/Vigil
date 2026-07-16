@@ -9,6 +9,7 @@ import com.vigil.alarm.AlarmConfig;
 import com.vigil.config.ConfigLoader;
 import com.vigil.monitor.SystemMetricsProvider;
 import com.vigil.config.TomlReader;
+import com.vigil.dispatcher.Dispatcher;
 
 
 public class VigilClient {
@@ -37,7 +38,9 @@ public class VigilClient {
             //build logger
             loader.buildLogger();
 
-            VigilLoop mainLoop = new VigilLoop(monitors, alarmConfigs);
+            List<Dispatcher> dispatchers = loader.buildDispatchers();
+
+            VigilLoop mainLoop = new VigilLoop(monitors, dispatchers, alarmConfigs);
 
             mainLoop.start();
 

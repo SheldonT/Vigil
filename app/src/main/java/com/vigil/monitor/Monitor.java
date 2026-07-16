@@ -15,5 +15,4 @@ public abstract class Monitor {
 
     public abstract double get();
 
-    // public abstract AlarmResult check();
 }

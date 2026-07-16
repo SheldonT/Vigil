@@ -8,6 +8,7 @@ import com.vigil.monitor.Monitor;
 import com.vigil.alarm.AlarmConfig;
 import com.vigil.alarm.AlarmEngine;
 import com.vigil.alarm.AlarmResult;
+import com.vigil.dispatcher.Dispatcher;
 
 public class VigilLoop {
     
@@ -16,27 +17,12 @@ public class VigilLoop {
     private static final Logger logger = Logger.getLogger(VigilLoop.class.getName());
 
     private final AlarmEngine alarmEngine;
+    private final List<Dispatcher> dispatchers;
 
-    public VigilLoop(List<Monitor> monitors, Map<String, AlarmConfig> alarmConfigs){
+    public VigilLoop(List<Monitor> monitors, List<Dispatcher> dispatchers, Map<String, AlarmConfig> alarmConfigs){
 
         this.alarmEngine = new AlarmEngine(monitors, alarmConfigs);
-
-        // this.logger = Logger.getLogger("Vigil");
-
-        // try {
-        //     FileHandler fileHandler = new FileHandler(
-        //         "vigil_events.log",
-        //         1024 * 1024,  // 1MB per file
-        //         5             // keep 5 rotated logs
-        //     );
-
-        //     fileHandler.setFormatter(new SimpleFormatter());
-        //     this.logger.addHandler(fileHandler);
-        //     this.logger.setUseParentHandlers(false);
-
-        // } catch (Exception e) {
-        //     System.out.println(e);
-        // }
+        this.dispatchers = dispatchers;
     }
 
     private void sleep (int ms) {
@@ -48,26 +34,27 @@ public class VigilLoop {
     }
 
     public void start(){
+        
+        System.out.println("Starting Vigil...");
 
-        try {
-            System.out.println("Starting Vigil...");
 
-            //AlarmEngine alarmEngine = new AlarmEngine(monitors, alarmConfigs);
-
-            while(runLoop){
-
+        while(runLoop){
+            try {
                 List<AlarmResult> events = alarmEngine.evaluate();
 
                 for(AlarmResult result : events){
-                    logger.info(
-                        result.timestampNow + " | " + result.name + " " + result.status + " : " + result.value
-                    );
+
+                    for(Dispatcher dispatch : this.dispatchers){
+
+                        dispatch.send(result);
+                    }
                 }
-                
-                this.sleep(500);
+
+            } catch (Exception e) {
+                System.out.println(e);
             }
-        } catch (Exception e) {
-            System.out.println(e);
+
+            this.sleep(500);
         }
     }
 
