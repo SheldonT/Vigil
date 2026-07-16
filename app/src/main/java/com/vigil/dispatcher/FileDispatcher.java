@@ -12,15 +12,19 @@ import java.time.format.DateTimeFormatter;
 import java.util.logging.Logger;
 
 import com.vigil.alarm.AlarmResult;
+import com.vigil.config.ConfigValidator;
 
 public class FileDispatcher extends Dispatcher{
 
     public record Configuration(String fileName, long maxLineCount) implements DispatcherConfig{
 
         public static Configuration fromMap(Map<String, Object> map){
+
+            Map<String, Object> validMap = ConfigValidator.requireMap(map, "File Dispatcher Map");
             Configuration config = new Configuration(
-                (String)map.get("fileName"),
-                (long)map.get("maxLineCount")
+
+                ConfigValidator.requireString(validMap, "File Dispatcher", "fileName"),
+                ConfigValidator.requireLong(validMap, "File Dispatcher", "maxLineCount")
             );
 
             return config;

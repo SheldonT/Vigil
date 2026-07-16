@@ -29,14 +29,13 @@ public class VigilLoop {
         try {
             Thread.sleep(ms);
         } catch(Exception e) {
-            logger.warning(e + "while sleeping");
+            logger.warning(e + "while sleeping in program loop");
         }
     }
 
     public void start(){
         
-        System.out.println("Starting Vigil...");
-
+        logger.info("Starting Vigil...");
 
         while(runLoop){
             try {
@@ -51,7 +50,7 @@ public class VigilLoop {
                 }
 
             } catch (Exception e) {
-                System.out.println(e);
+                logger.severe(e + "in program loop");
             }
 
             this.sleep(500);
@@ -59,7 +58,7 @@ public class VigilLoop {
     }
 
     public void stop(){
-        System.out.println("Stopping Vigil.");
+        logger.info("Stopping Vigil.");
         this.runLoop = false;
     }
 }

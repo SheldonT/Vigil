@@ -2,8 +2,8 @@ package com.vigil.alarm;
 
 import java.util.Map;
 
-import org.tomlj.TomlTable;
 import com.vigil.exception.InvalidConfigurationException;
+import com.vigil.config.ConfigValidator;
 
 public class AlarmConfig {
 
@@ -54,39 +54,6 @@ public class AlarmConfig {
         this.clearDelayMs = clearDelayMs;
     }
 
-    private static double requireDouble(TomlTable table, String monitorId, String key) {
-        Double value = table.getDouble(key);
-        if (value == null) {
-            throw new IllegalArgumentException("Missing required double field 'highWarning' in alarm configuration for monitor '" + monitorId + "'");
-        }
-        return value;
-    }
-
-    private static long requireLong(TomlTable table, String monitorId, String key) {
-        Long value = table.getLong(key);
-        if (value == null) {
-            throw new IllegalArgumentException("Missing required long field 'highWarning' in alarm configuration for monitor '" + monitorId + "'");
-        }
-        return value;
-    }
-
-    private static double mapRequireDouble(Map<String, Object> table, String monitorId, String key) {
-        Double value = (Double)table.get(key);
-        if (value == null) {
-            throw new IllegalArgumentException("Missing required double field 'highWarning' in alarm configuration for monitor '" + monitorId + "'");
-        }
-        return value;
-    }
-
-    private static long mapRequireLong(Map<String, Object> table, String monitorId, String key) {
-        
-        Long value = (Long)table.get(key);
-        if (value == null) {
-            throw new IllegalArgumentException("Missing required long field 'highWarning' in alarm configuration for monitor '" + monitorId + "'");
-        }
-        return value;
-    }
-
     private void validate() {
         if (this.lowAlarm > this.lowAlarmClear){
             throw new InvalidConfigurationException("Low Alarm Clear setpoint must be greater than or equal to Low Alarm setpoint (" + this.monitorName + ")!");
@@ -121,36 +88,18 @@ public class AlarmConfig {
         }
     }
 
-    public static AlarmConfig fromToml(String id, TomlTable table) {
-        AlarmConfig config =  new AlarmConfig(id,
-                       requireDouble(table, id, "highWarning"),
-                       requireDouble(table, id, "highWarningClear"),
-                       requireDouble(table, id, "highAlarm"),
-                       requireDouble(table, id, "highAlarmClear"),
-                       requireDouble(table, id, "lowWarning"),
-                       requireDouble(table, id, "lowWarningClear"),
-                       requireDouble(table, id, "lowAlarm"),
-                       requireDouble(table, id, "lowAlarmClear"),
-                       requireLong(table, id, "activationDelayMs"),
-                       requireLong(table, id, "clearDelayMs"));
-
-        config.validate();
-
-        return config;
-    }
-
     public static AlarmConfig fromMap(String id, Map<String, Object> table) {
         AlarmConfig config =  new AlarmConfig(id,
-                       mapRequireDouble(table, id, "highWarning"),
-                       mapRequireDouble(table, id, "highWarningClear"),
-                       mapRequireDouble(table, id, "highAlarm"),
-                       mapRequireDouble(table, id, "highAlarmClear"),
-                       mapRequireDouble(table, id, "lowWarning"),
-                       mapRequireDouble(table, id, "lowWarningClear"),
-                       mapRequireDouble(table, id, "lowAlarm"),
-                       mapRequireDouble(table, id, "lowAlarmClear"),
-                       mapRequireLong(table, id, "activationDelayMs"),
-                       mapRequireLong(table, id, "clearDelayMs"));
+                       ConfigValidator.requireDouble(table, id, "highWarning"),
+                       ConfigValidator.requireDouble(table, id, "highWarningClear"),
+                       ConfigValidator.requireDouble(table, id, "highAlarm"),
+                       ConfigValidator.requireDouble(table, id, "highAlarmClear"),
+                       ConfigValidator.requireDouble(table, id, "lowWarning"),
+                       ConfigValidator.requireDouble(table, id, "lowWarningClear"),
+                       ConfigValidator.requireDouble(table, id, "lowAlarm"),
+                       ConfigValidator.requireDouble(table, id, "lowAlarmClear"),
+                       ConfigValidator.requireLong(table, id, "activationDelayMs"),
+                       ConfigValidator.requireLong(table, id, "clearDelayMs"));
 
         config.validate();
 
