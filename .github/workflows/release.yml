@@ -33,4 +33,4 @@ jobs:
         uses: softprops/action-gh-release@v2
         with:
           files: |
-            build/libs/*-all.jar
+            app/build/libs/*.jar
