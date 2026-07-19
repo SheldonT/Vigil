@@ -23,7 +23,7 @@ jobs:
           distribution: "temurin"
 
       - name: Build with Gradle
-        run: ./gradlew test shadowJar -Pversion=${{ github.ref_name }}
+        run: ./gradlew test shadowJar -Pversion=${GITHUB_REF_NAME#v}
 
       - name: List build artifacts
         run: |
