@@ -47,5 +47,5 @@ tasks.named<Test>("test") {
 tasks.shadowJar {
     archiveBaseName.set("vigil")
     archiveClassifier.set("")
-    archiveVersion.set("")
+    archiveVersion.set(version.toString())
 }
