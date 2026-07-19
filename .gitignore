@@ -11,4 +11,5 @@ build
 out/
 *.py
 *.jar
+!gradle/wrapper/gradle-wrapper.jar
 *.toml
