@@ -15,6 +15,14 @@ A lightweight, configurable system monitoring and alerting tool written in Java.
 - Java 21+
 - Gradle (or use the included `gradlew` wrapper)
 
+## Download
+
+The latest official release of Vigil is available here:
+
+[Download Vigil](https://github.com/SheldonT/Vigil/releases/latest)
+
+Download the `.jar` file from the release assets and run it with Java 21 or newer.
+
 ## Building
 
 ```bash
