@@ -1,6 +1,6 @@
 # Vigil
 
-A lightweight, configurable system monitoring and alerting tool written in Java. Vigil polls system metrics, evaluates them against configurable alarm setpoints, and dispatches events when thresholds are crossed.
+A lightweight, configurable system monitoring and alarm dispatching framework written in Java. Vigil polls system metrics, evaluates them against configurable alarm setpoints, and dispatches events when thresholds are crossed.
 
 ## Features
 
