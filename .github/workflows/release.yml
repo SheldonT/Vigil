@@ -25,6 +25,10 @@ jobs:
       - name: Build with Gradle
         run: ./gradlew test shadowJar -Pversion=${{ github.ref_name }}
 
+      - name: List build artifacts
+        run: |
+          find . -path "*/build/libs/*" -type f
+
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v2
         with:
