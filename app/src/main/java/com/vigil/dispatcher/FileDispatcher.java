@@ -9,8 +9,6 @@ import java.nio.file.StandardOpenOption;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 
-import java.util.logging.Logger;
-
 import com.vigil.alarm.AlarmResult;
 import com.vigil.config.ConfigValidator;
 
@@ -36,8 +34,6 @@ public class FileDispatcher extends Dispatcher{
         }
     }
 
-    private static final Logger logger =
-            Logger.getLogger(FileDispatcher.class.getName());
     private Path currentFile;
     private long lineCount = 0;
     private final Configuration config;
@@ -48,6 +44,7 @@ public class FileDispatcher extends Dispatcher{
 
         this.currentFile = this.createFilePath();
     }
+    
     @Override
     public void send(AlarmResult result){
 
@@ -70,7 +67,7 @@ public class FileDispatcher extends Dispatcher{
             this.lineCount++;
 
         } catch(IOException e) {
-            logger.severe("Error writing to output file" + e);
+            this.logger.severe("Error writing to output file" + e);
         }
     }
 

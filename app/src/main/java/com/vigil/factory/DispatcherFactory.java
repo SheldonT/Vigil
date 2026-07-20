@@ -4,6 +4,7 @@ import java.util.Map;
 
 import com.vigil.dispatcher.Dispatcher;
 import com.vigil.dispatcher.FileDispatcher;
+import com.vigil.dispatcher.MqttDispatcher;
 
 public class DispatcherFactory{
 
@@ -15,9 +16,12 @@ public class DispatcherFactory{
         switch(dispatchType){
             case "File":
                 return new FileDispatcher(FileDispatcher.Configuration.fromMap(config));
+            
+            case "MQTT":
+                return new MqttDispatcher(MqttDispatcher.Configuration.fromMap(config));
                 
             default:
-                throw new IllegalArgumentException("Unknown monitor type: " + dispatchType);
+                throw new IllegalArgumentException("Unknown dispatcher type: " + dispatchType);
         }
     }
 }

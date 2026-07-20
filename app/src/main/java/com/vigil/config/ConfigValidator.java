@@ -71,4 +71,14 @@ public final class ConfigValidator {
             throw new InvalidConfigurationException("Invalid type for boolean field '" + key + "' in configuration for'" + id + "'");
         }
     }
+
+    public static int requirePort(Map<String, Object> table, String id, String key) {
+        long value = (long)table.get(key);
+
+        if (value < 1 && value > 65535){
+            throw new IllegalArgumentException("Invalid port field '" + key + "' in configuration for '" + id + "'");
+        }
+
+        return (int)value;
+    }
 }

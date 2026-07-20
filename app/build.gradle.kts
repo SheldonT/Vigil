@@ -25,6 +25,7 @@ dependencies {
     // This dependency is used by the application.
     implementation(libs.guava)
     implementation("org.tomlj:tomlj:1.1.1")
+    implementation("com.hivemq:hivemq-mqtt-client:1.3.3")
 }
 
 // Apply a specific Java toolchain to ease working on different environments.
