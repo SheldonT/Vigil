@@ -4,29 +4,32 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import java.time.Instant;
+
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import static org.junit.jupiter.api.Assertions.*;
 
 import com.vigil.monitor.Monitor;
+import com.vigil.monitor.MonitorReading;
 
 class AlarmEngineTest {
 
     /**
      * A simple controllable Monitor stub — no SystemMetricsProvider needed.
      */
-    private static class StubMonitor extends Monitor {
-        private double value;
+    private static class StubMonitor extends Monitor<Double> {
+        private MonitorReading<Double> value;
 
-        StubMonitor(String name, double initialValue) {
+        StubMonitor(String name, MonitorReading<Double> initialValue) {
             super(name);
             this.value = initialValue;
         }
 
-        void setValue(double v) { this.value = v; }
+        void setValue(MonitorReading<Double> v) { this.value = v; }
 
         @Override
-        public double get() { return value; }
+        public MonitorReading<Double> read() { return this.value; }
     }
 
     // Setpoints used across all tests:
@@ -70,104 +73,128 @@ class AlarmEngineTest {
 
     @Test
     void noEvent_whenValueStaysInOkZone() {
-        StubMonitor monitor = new StubMonitor("CPU", 50.0);
+
+        MonitorReading<Double> initialValue = new MonitorReading<Double>("CPU", 50.0, Instant.now());
+        StubMonitor monitor = new StubMonitor("CPU", initialValue);
         AlarmEngine engine = engineWith(monitor);
 
-        List<AlarmResult> events = engine.evaluate();
+        AlarmResult events = engine.evaluate(monitor.read());
 
-        assertTrue(events.isEmpty(), "No event expected when value stays OK");
+        assertTrue(events == null, "No event expected when value stays OK");
     }
 
     // ---- HIGH_WARNING transitions ----
 
     @Test
     void highWarningEvent_whenValueCrossesHighWarnThreshold() {
-        StubMonitor monitor = new StubMonitor("CPU", 50.0);
+        MonitorReading<Double> initialValue = new MonitorReading<Double>("CPU", 50.0, Instant.now());
+        StubMonitor monitor = new StubMonitor("CPU", initialValue);
         AlarmEngine engine = engineWith(monitor);
 
-        monitor.setValue(82.0);   // crosses HIGH_WARN (80)
-        List<AlarmResult> events = engine.evaluate();
 
-        assertEquals(1, events.size());
-        assertEquals(Status.HIGH_WARNING, events.get(0).status);
+        MonitorReading<Double> testValue = new MonitorReading<Double>("CPU", 82.0, Instant.now());
+
+        monitor.setValue(testValue);   // crosses HIGH_WARN (80)
+        AlarmResult event = engine.evaluate(monitor.read());
+
+        assertTrue(event != null, "Event expected when crossing high warning");
+        assertEquals(Status.HIGH_WARNING, event.status);
     }
 
     @Test
     void noEvent_whenValueStaysInHighWarningZone() {
-        StubMonitor monitor = new StubMonitor("CPU", 82.0);
+        MonitorReading<Double> initialValue = new MonitorReading<Double>("CPU", 82.0, Instant.now());
+        StubMonitor monitor = new StubMonitor("CPU", initialValue);
         AlarmEngine engine = engineWith(monitor);
 
-        engine.evaluate();           // consume the initial HIGH_WARNING event (if any)
-        monitor.setValue(83.0);      // still in HIGH_WARNING zone
-        List<AlarmResult> events = engine.evaluate();
+        engine.evaluate(monitor.read());           // consume the initial HIGH_WARNING event (if any)
+        MonitorReading<Double> testValue = new MonitorReading<Double>("CPU", 83.0, Instant.now());
 
-        assertTrue(events.isEmpty(), "No event expected while value stays in HIGH_WARNING");
+        monitor.setValue(testValue);      // still in HIGH_WARNING zone
+        AlarmResult event = engine.evaluate(monitor.read());
+
+        assertTrue(event == null, "No event expected while value stays in HIGH_WARNING");
     }
 
     // ---- HIGH_ALARM transitions ----
 
     @Test
     void highAlarmEvent_whenValueCrossesHighAlarmThreshold() {
-        StubMonitor monitor = new StubMonitor("CPU", 82.0);
+        MonitorReading<Double> initialValue = new MonitorReading<Double>("CPU", 82.0, Instant.now());
+        StubMonitor monitor = new StubMonitor("CPU", initialValue);
         AlarmEngine engine = engineWith(monitor);
-        engine.evaluate();   // prime engine to HIGH_WARNING state
 
-        monitor.setValue(92.0);   // crosses HIGH_ALARM (90)
-        List<AlarmResult> events = engine.evaluate();
+        engine.evaluate(monitor.read());   // prime engine to HIGH_WARNING state
 
-        assertEquals(1, events.size());
-        assertEquals(Status.HIGH_ALARM, events.get(0).status);
+        MonitorReading<Double> testValue = new MonitorReading<Double>("CPU", 92.0, Instant.now());
+
+        monitor.setValue(testValue);   // crosses HIGH_ALARM (90)
+        AlarmResult event = engine.evaluate(monitor.read());
+
+        assertTrue(event != null, "Event expected while value crossing into HIGH_ALARM");
+        assertEquals(Status.HIGH_ALARM, event.status);
     }
 
     // ---- LOW_WARNING transitions ----
 
     @Test
     void lowWarningEvent_whenValueCrossesLowWarnThreshold() {
-        StubMonitor monitor = new StubMonitor("CPU", 50.0);
+        MonitorReading<Double> initialValue = new MonitorReading<Double>("CPU", 50.0, Instant.now());
+        StubMonitor monitor = new StubMonitor("CPU", initialValue);
         AlarmEngine engine = engineWith(monitor);
 
-        monitor.setValue(18.0);   // crosses LOW_WARN (20)
-        List<AlarmResult> events = engine.evaluate();
+        MonitorReading<Double> testValue = new MonitorReading<Double>("CPU", 18.0, Instant.now());
 
-        assertEquals(1, events.size());
-        assertEquals(Status.LOW_WARNING, events.get(0).status);
+        monitor.setValue(testValue);   // crosses LOW_WARN (20)
+        AlarmResult event = engine.evaluate(monitor.read());
+
+        assertTrue(event != null, "Event expected while value crossing below LOW_WARNING");
+        assertEquals(Status.LOW_WARNING, event.status);
     }
 
     // ---- LOW_ALARM transitions ----
 
     @Test
     void lowAlarmEvent_whenValueCrossesLowAlarmThreshold() {
-        StubMonitor monitor = new StubMonitor("CPU", 18.0);
+        MonitorReading<Double> initialValue = new MonitorReading<Double>("CPU", 18.0, Instant.now());
+        StubMonitor monitor = new StubMonitor("CPU", initialValue);
         AlarmEngine engine = engineWith(monitor);
-        engine.evaluate();   // prime engine to LOW_WARNING state
+        engine.evaluate(monitor.read());   // prime engine to LOW_WARNING state
 
-        monitor.setValue(8.0);   // crosses LOW_ALARM (10)
-        List<AlarmResult> events = engine.evaluate();
+        MonitorReading<Double> testValue = new MonitorReading<Double>("CPU", 8.0, Instant.now());
 
-        assertEquals(1, events.size());
-        assertEquals(Status.LOW_ALARM, events.get(0).status);
+        monitor.setValue(testValue);   // crosses LOW_ALARM (10)
+        AlarmResult event = engine.evaluate(monitor.read());
+
+        assertTrue(event != null, "Event expected while value crossing below LOW_ALARM");
+        assertEquals(Status.LOW_ALARM, event.status);
     }
 
     // ---- clearing back to OK ----
 
     @Test
     void okEvent_whenHighWarningValueClearsToOk() {
-        StubMonitor monitor = new StubMonitor("CPU", 82.0);
+        MonitorReading<Double> initialValue = new MonitorReading<Double>("CPU", 82.0, Instant.now());
+        StubMonitor monitor = new StubMonitor("CPU", initialValue);
         AlarmEngine engine = engineWith(monitor);
-        engine.evaluate();   // prime to HIGH_WARNING
+        engine.evaluate(monitor.read());   // prime to HIGH_WARNING
 
-        monitor.setValue(50.0);   // drops below HIGH_WARN_CLEAR (75) → OK
-        List<AlarmResult> events = engine.evaluate();
+        MonitorReading<Double> testValue = new MonitorReading<Double>("CPU", 50.0, Instant.now());
 
-        assertEquals(1, events.size());
-        assertEquals(Status.OK, events.get(0).status);
+
+        monitor.setValue(testValue);   // drops below HIGH_WARN_CLEAR (75) → OK
+        AlarmResult event = engine.evaluate(monitor.read());
+
+        assertTrue(event != null, "Event expected while value crossing from ALARM_HIGH to OK");
+        assertEquals(Status.OK, event.status);
     }
 
     // ---- missing alarm config ----
 
     @Test
     void constructor_throws_whenAlarmConfigMissingForMonitor() {
-        StubMonitor monitor = new StubMonitor("CPU", 50.0);
+        MonitorReading<Double> initialValue = new MonitorReading<Double>("CPU", 50.0, Instant.now());
+        StubMonitor monitor = new StubMonitor("CPU", initialValue);
         assertThrows(IllegalStateException.class,
                 () -> new AlarmEngine(List.of(monitor), Map.of()));   // empty config map
     }

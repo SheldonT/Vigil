@@ -9,20 +9,20 @@ import com.vigil.monitor.Monitor;
 
 public class MonitorFactory{
 
-    public static Monitor create(String monitorType, SystemMetricsProvider provider){
+    public static Monitor<?> create(String monitorType, Double telemetryDeadband, SystemMetricsProvider provider){
 
         switch(monitorType){
             case "CPU":
-                return new CpuMonitor(provider);
+                return new CpuMonitor(provider, telemetryDeadband);
                 
             case "Memory":
-                return new MemoryMonitor(provider);
+                return new MemoryMonitor(provider, telemetryDeadband);
                 
             case "ProcessCpuUsage":
-                return new ProcessCpuUsage(provider);
+                return new ProcessCpuUsage(provider, telemetryDeadband);
                 
             case "SystemLoadAverage":
-                return new SystemLoadAverage(provider);
+                return new SystemLoadAverage(provider, telemetryDeadband);
                 
             default:
                 throw new IllegalArgumentException("Unknown monitor type: " + monitorType);

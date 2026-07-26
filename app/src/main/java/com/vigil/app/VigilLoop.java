@@ -9,6 +9,8 @@ import com.vigil.alarm.AlarmConfig;
 import com.vigil.alarm.AlarmEngine;
 import com.vigil.alarm.AlarmResult;
 import com.vigil.dispatcher.Dispatcher;
+import com.vigil.monitor.MonitorReading;
+import com.vigil.telemetry.TelemetryTracker;
 
 public class VigilLoop {
     
@@ -18,11 +20,16 @@ public class VigilLoop {
 
     private final AlarmEngine alarmEngine;
     private final List<Dispatcher> dispatchers;
+    private final List<Monitor<?>> monitors;
+    private final TelemetryTracker telemetry;
 
-    public VigilLoop(List<Monitor> monitors, List<Dispatcher> dispatchers, Map<String, AlarmConfig> alarmConfigs){
+    public VigilLoop(List<Monitor<?>> monitors, List<Dispatcher> dispatchers, Map<String, AlarmConfig> alarmConfigs){
 
         this.alarmEngine = new AlarmEngine(monitors, alarmConfigs);
         this.dispatchers = dispatchers;
+        this.monitors = monitors;
+
+        this.telemetry = new TelemetryTracker(monitors);
     }
 
     private void sleep (int ms) {
@@ -38,21 +45,21 @@ public class VigilLoop {
         logger.info("Starting Vigil...");
 
         while(runLoop){
-            try {
-                List<AlarmResult> events = alarmEngine.evaluate();
+            for (Monitor<?> m : this.monitors){
+                try{
+                    MonitorReading<?> value = m.read();
 
-                for(AlarmResult result : events){
+                    AlarmResult result = this.alarmEngine.evaluate(value);
+                    Boolean sendTelemetry = this.telemetry.shouldDispatch(value);
 
-                    for(Dispatcher dispatch : this.dispatchers){
-
-                        dispatch.send(result);
+                    for (Dispatcher d : this.dispatchers){
+                        if (sendTelemetry) d.sendValue(value);
+                        if (result != null) d.sendAlarm(result);
                     }
+                } catch (Exception e) {
+                    logger.severe(e + "in program loop");
                 }
-
-            } catch (Exception e) {
-                logger.severe(e + "in program loop");
             }
-
             this.sleep(500);
         }
     }

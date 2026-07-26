@@ -29,22 +29,24 @@ public class ConfigLoader {
             this.provider = provider;
     }
 
-    public List<Monitor> buildMonitors(){
+    public List<Monitor<?>> buildMonitors(){
 
         logger.info("Building monitor list...");
 
         Map<String, Object> monitors = ConfigValidator.requireMap(this.config.get("monitor"), "Monitors Map");
 
-        List<Monitor> monitorObj = new ArrayList<>();
+        List<Monitor<?>> monitorObj = new ArrayList<>();
 
         for (Map.Entry<String, Object> entry : monitors.entrySet()) {
 
             Map<String, Object> monitorTable = ConfigValidator.requireMap(entry.getValue(), "Single Monitor Map");
-            String monitorType = (String)monitorTable.get("type");
+
+            String monitorType = ConfigValidator.requireString(monitorTable, entry.getKey(), "type");
+            Double telemetryDeadband = ConfigValidator.requireDouble(monitorTable, entry.getKey(), "telemetryDeadband");
 
             logger.info("Adding " + monitorType + " monitor to the list");
 
-            monitorObj.add(MonitorFactory.create(monitorType, provider));
+            monitorObj.add(MonitorFactory.create(monitorType, telemetryDeadband, provider));
         }
         logger.info(monitorObj.size() + " configured.");
         return monitorObj;

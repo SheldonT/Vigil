@@ -11,6 +11,7 @@ import java.time.format.DateTimeFormatter;
 
 import com.vigil.alarm.AlarmResult;
 import com.vigil.config.ConfigValidator;
+import com.vigil.monitor.MonitorReading;
 
 public class FileDispatcher extends Dispatcher{
 
@@ -46,10 +47,21 @@ public class FileDispatcher extends Dispatcher{
     }
     
     @Override
-    public void send(AlarmResult result){
+    public void sendAlarm(AlarmResult result){
 
-        String eventString = result.timestampNow + " - " + result.name + " " + result.status + " : " + result.value;
+        String eventString = "STATUS => " + result.timestampNow + " - " + result.name + " " + result.status + " : " + result.value;
+        
+        this.writeLine(eventString);
+    }
 
+    @Override
+    public void sendValue(MonitorReading<?> result){
+        String telemetryString = "TELEMETRY => " + result.timestamp() + " - " + result.name() + " : " + result.value();
+
+        this.writeLine(telemetryString);
+    }
+
+    private void writeLine(String line){
         if (this.lineCount >= config.maxLineCount()){
             this.rotateFile();
         }
@@ -60,7 +72,7 @@ public class FileDispatcher extends Dispatcher{
             StandardOpenOption.APPEND
         )) {
 
-            writer.write(eventString);
+            writer.write(line);
             writer.newLine();
             writer.flush();
 

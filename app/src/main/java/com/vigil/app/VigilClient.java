@@ -38,7 +38,7 @@ public class VigilClient {
             loader.buildLogger();
 
             //build a list of monitors
-            List<Monitor> monitors = loader.buildMonitors();
+            List<Monitor<?>> monitors = loader.buildMonitors();
             //build a Map of alarm configs
             Map<String, AlarmConfig> alarmConfigs = loader.buildAlarmConfigs();
 

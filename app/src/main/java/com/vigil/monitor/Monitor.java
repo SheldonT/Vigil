@@ -1,7 +1,8 @@
 package com.vigil.monitor;
+
 import java.util.logging.Logger;
 
-public abstract class Monitor {
+public abstract class Monitor<T> {
 
     protected final Logger logger = Logger.getLogger(getClass().getName());
     private final String name;
@@ -14,6 +15,10 @@ public abstract class Monitor {
         return this.name;
     }
 
-    public abstract double get();
+    public double getTelemetryDeadband() {
+        return 0.0;
+    }
+
+    public abstract MonitorReading<T> read();
 
 }

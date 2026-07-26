@@ -2,25 +2,23 @@ package com.vigil.alarm;
 
 import java.util.HashMap;
 import java.util.List;
-import java.util.ArrayList;
 import java.util.Map;
 import java.time.Instant;
 import java.time.Duration;
 
 import com.vigil.monitor.Monitor;
+import com.vigil.monitor.MonitorReading;
 
 public class AlarmEngine {
 
     private final Map<String, AlarmConfig> alarmConfigs;
-    private final List<Monitor> monitors;
     private Map<String, State> monitorStates = new HashMap<>();
 
 
-    public AlarmEngine(List<Monitor> monitors, Map<String, AlarmConfig> alarmConfigs) {
-        this.monitors = monitors;
+    public AlarmEngine(List<Monitor<?>> monitors, Map<String, AlarmConfig> alarmConfigs) {
         this.alarmConfigs = alarmConfigs;
 
-        for (Monitor m : monitors){
+        for (Monitor<?> m : monitors){
             if (!alarmConfigs.containsKey(m.getName())){
                 throw new IllegalStateException("Missing alarm configs for " + m.getName());
             }
@@ -32,9 +30,13 @@ public class AlarmEngine {
 
     }
     
-    private State initializeState (Monitor m, AlarmConfig config){
+    private State initializeState (Monitor<?> m, AlarmConfig config){
 
-        double initVal = m.get();
+
+        MonitorReading<?> val = m.read();
+
+        double initVal = (Double)val.value();
+
         State initState = new State (m.getName());
 
         Status status = this.determineRawStatus(initVal, config);
@@ -191,31 +193,28 @@ public class AlarmEngine {
         }
     }
 
-    public List<AlarmResult> evaluate() {
+    public AlarmResult evaluate(MonitorReading<?> value) {
 
-        List<AlarmResult> events = new ArrayList<>();
 
-        for (Monitor m : monitors){
+        AlarmConfig config = this.alarmConfigs.get(value.name());
+        State state = this.monitorStates.get(value.name());
 
-            AlarmConfig config = this.alarmConfigs.get(m.getName());
-            State state = this.monitorStates.get(m.getName());
-            double value = m.get();
-            Instant now = Instant.now();
+        AlarmResult event = null;
 
-            Status newStatus = this.evaluateStatusTransition(value, state, config, now);
+        Instant now = Instant.now();
 
-            if (newStatus != state.getStatus() ) {
-                AlarmResult event = new AlarmResult(m.getName(), value, newStatus, now);
-                events.add(event);
+        Status newStatus = this.evaluateStatusTransition((double)value.value(), state, config, now);
 
-                state.transitionTo(newStatus, now);
-            }
+        if (newStatus != state.getStatus() ) {
+            event = new AlarmResult(value.name(), (double)value.value(), newStatus, now);
 
-            state.setValue(value);
-            state.setLastEvaluated(now);
+            state.transitionTo(newStatus, now);
         }
 
-        return events;
+        state.setValue((double)value.value());
+        state.setLastEvaluated(now);
+
+        return event;
     }
     
 }

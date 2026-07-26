@@ -8,6 +8,7 @@ import com.hivemq.client.mqtt.mqtt5.Mqtt5AsyncClient;
 
 import com.vigil.alarm.AlarmResult;
 import com.vigil.config.ConfigValidator;
+import com.vigil.monitor.MonitorReading;
 
 public class MqttDispatcher extends Dispatcher{
 
@@ -28,7 +29,7 @@ public class MqttDispatcher extends Dispatcher{
 
         @Override
         public String getType(){
-            return "File";
+            return "Mqtt";
         }
     }
 
@@ -67,12 +68,24 @@ public class MqttDispatcher extends Dispatcher{
     }
 
     @Override
-    public void send(AlarmResult result){
+    public void sendAlarm(AlarmResult result){
 
         String payload = result.timestampNow + "," + result.name + "," + result.status + "," + result.value;
+        String topic = this.config.topic() + "/alarm";
 
         this.client.publishWith()
-        .topic(this.config.topic())
+        .topic(topic)
+        .payload(payload.getBytes())
+        .send();
+    }
+
+    @Override
+    public void sendValue(MonitorReading<?> result){
+        String payload = result.timestamp() + "," + result.name() + "," + result.value();
+        String topic = this.config.topic() + "/telemetry";
+        
+        this.client.publishWith()
+        .topic(topic)
         .payload(payload.getBytes())
         .send();
     }
