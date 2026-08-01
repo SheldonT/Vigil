@@ -5,7 +5,7 @@ import java.util.Map;
 
 import com.vigil.monitor.JvmSystemMetricsProvider;
 import com.vigil.monitor.Monitor;
-import com.vigil.alarm.AlarmConfig;
+import com.vigil.alarm.NumericAlarmConfig;
 import com.vigil.config.ConfigLoader;
 import com.vigil.monitor.SystemMetricsProvider;
 import com.vigil.config.TomlReader;
@@ -40,11 +40,11 @@ public class VigilClient {
             //build a list of monitors
             List<Monitor<?>> monitors = loader.buildMonitors();
             //build a Map of alarm configs
-            Map<String, AlarmConfig> alarmConfigs = loader.buildAlarmConfigs();
+            //Map<String, NumericAlarmConfig> alarmConfigs = loader.buildAlarmConfigs();
 
             List<Dispatcher> dispatchers = loader.buildDispatchers();
 
-            mainLoop = new VigilLoop(monitors, dispatchers, alarmConfigs);
+            mainLoop = new VigilLoop(monitors, dispatchers);
 
             shutdownHandler.register(mainLoop::stop);
 

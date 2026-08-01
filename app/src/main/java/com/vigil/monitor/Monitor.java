@@ -2,6 +2,8 @@ package com.vigil.monitor;
 
 import java.util.logging.Logger;
 
+import com.vigil.alarm.AlarmEvaluator;
+
 public abstract class Monitor<T> {
 
     protected final Logger logger = Logger.getLogger(getClass().getName());
@@ -20,5 +22,7 @@ public abstract class Monitor<T> {
     }
 
     public abstract MonitorReading<T> read();
+
+    public abstract AlarmEvaluator<T> getAlarmEvaluator();
 
 }

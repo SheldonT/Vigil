@@ -8,7 +8,7 @@ import java.io.IOException;
 import java.util.logging.Logger;
 
 import com.vigil.monitor.Monitor;
-import com.vigil.alarm.AlarmConfig;
+import com.vigil.alarm.NumericAlarmConfig;
 import com.vigil.app.LoggerConfig;
 import com.vigil.monitor.SystemMetricsProvider;
 import com.vigil.factory.MonitorFactory;
@@ -42,22 +42,22 @@ public class ConfigLoader {
             Map<String, Object> monitorTable = ConfigValidator.requireMap(entry.getValue(), "Single Monitor Map");
 
             String monitorType = ConfigValidator.requireString(monitorTable, entry.getKey(), "type");
-            Double telemetryDeadband = ConfigValidator.requireDouble(monitorTable, entry.getKey(), "telemetryDeadband");
+            // Double telemetryDeadband = ConfigValidator.requireDouble(monitorTable, entry.getKey(), "telemetryDeadband");
 
             logger.info("Adding " + monitorType + " monitor to the list");
 
-            monitorObj.add(MonitorFactory.create(monitorType, telemetryDeadband, provider));
+            monitorObj.add(MonitorFactory.create(monitorType, monitorTable, provider));
         }
         logger.info(monitorObj.size() + " configured.");
         return monitorObj;
      }
 
-    public Map<String, AlarmConfig> buildAlarmConfigs(){
+    public Map<String, NumericAlarmConfig> buildAlarmConfigs(){
 
         logger.info("Building monitor config map...");
 
         Map<String, Object> monitors = ConfigValidator.requireMap(config.get("monitor"), "Alarm Config Map");
-        Map<String, AlarmConfig> alarmConfigs = new HashMap<>();
+        Map<String, NumericAlarmConfig> alarmConfigs = new HashMap<>();
 
         for (Map.Entry<String, Object> entry : monitors.entrySet()) {
 
@@ -68,7 +68,7 @@ public class ConfigLoader {
 
             logger.info("Adding config for monitor" + monitorName + " to config map");
 
-            alarmConfigs.put(monitorName, AlarmConfig.fromMap(monitorName, alarmTable));
+            alarmConfigs.put(monitorName, NumericAlarmConfig.fromMap(monitorName, alarmTable));
         }
 
         logger.info(alarmConfigs.size() + " monitor configs created");

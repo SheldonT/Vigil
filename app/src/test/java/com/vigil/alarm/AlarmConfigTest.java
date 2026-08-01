@@ -28,7 +28,7 @@ class AlarmConfigTest {
 
     @Test
     void fromMap_succeeds_withValidConfig() {
-        AlarmConfig config = AlarmConfig.fromMap("CPU", validMap());
+        NumericAlarmConfig config = NumericAlarmConfig.fromMap("CPU", validMap());
         assertNotNull(config);
         assertEquals("CPU", config.getMonitorName());
         assertEquals(90.0, config.getHighAlarm());
@@ -40,7 +40,7 @@ class AlarmConfigTest {
         Map<String, Object> map = validMap();
         map.put("highAlarm", 70.0);   // lower than highWarning (80)
         assertThrows(InvalidConfigurationException.class,
-                () -> AlarmConfig.fromMap("CPU", map));
+                () -> NumericAlarmConfig.fromMap("CPU", map));
     }
 
     @Test
@@ -48,7 +48,7 @@ class AlarmConfigTest {
         Map<String, Object> map = validMap();
         map.put("lowAlarm", 30.0);    // higher than lowWarning (20)
         assertThrows(InvalidConfigurationException.class,
-                () -> AlarmConfig.fromMap("CPU", map));
+                () -> NumericAlarmConfig.fromMap("CPU", map));
     }
 
     @Test
@@ -56,7 +56,7 @@ class AlarmConfigTest {
         Map<String, Object> map = validMap();
         map.put("highAlarmClear", 95.0);  // above highAlarm (90)
         assertThrows(InvalidConfigurationException.class,
-                () -> AlarmConfig.fromMap("CPU", map));
+                () -> NumericAlarmConfig.fromMap("CPU", map));
     }
 
     @Test
@@ -64,7 +64,7 @@ class AlarmConfigTest {
         Map<String, Object> map = validMap();
         map.put("lowAlarmClear", 5.0);    // below lowAlarm (10)
         assertThrows(InvalidConfigurationException.class,
-                () -> AlarmConfig.fromMap("CPU", map));
+                () -> NumericAlarmConfig.fromMap("CPU", map));
     }
 
     @Test
@@ -72,7 +72,7 @@ class AlarmConfigTest {
         Map<String, Object> map = validMap();
         map.put("lowWarning", 80.0);  // equal to highWarning
         assertThrows(InvalidConfigurationException.class,
-                () -> AlarmConfig.fromMap("CPU", map));
+                () -> NumericAlarmConfig.fromMap("CPU", map));
     }
 
     @Test
@@ -80,7 +80,7 @@ class AlarmConfigTest {
         Map<String, Object> map = validMap();
         map.remove("highAlarm");
         assertThrows(IllegalArgumentException.class,
-                () -> AlarmConfig.fromMap("CPU", map));
+                () -> NumericAlarmConfig.fromMap("CPU", map));
     }
 
     @Test
@@ -88,6 +88,6 @@ class AlarmConfigTest {
         Map<String, Object> map = validMap();
         map.put("activationDelayMs", -500L);
         assertThrows(InvalidConfigurationException.class,
-                () -> AlarmConfig.fromMap("CPU", map));
+                () -> NumericAlarmConfig.fromMap("CPU", map));
     }
 }

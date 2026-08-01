@@ -2,12 +2,12 @@ package com.vigil.alarm;
 
 import java.time.Instant;
 
-public class State {
+public class State<T> {
 
     private final String id;
     private Status status;
     private Status pendingStatus;
-    private double value;
+    private T value;
     private Instant stateEntered;
     private Instant lastEvaluated;
     private Instant pendingSince;
@@ -17,7 +17,6 @@ public class State {
         this.id = id;
         this.stateEntered = Instant.now();
         this.pendingSince = Instant.now();
-        this.value = 0.0;
         this.status = Status.OK;
         this.pendingStatus = Status.OK;
     }
@@ -30,7 +29,7 @@ public class State {
         return this.status;
     }
 
-    public double getValue() {
+    public T getValue() {
         return this.value;
     }
 
@@ -49,7 +48,7 @@ public class State {
         return this.pendingStatus;
     }
 
-    public void setState(Status s, double v, Instant ts){
+    public void setState(Status s, T v, Instant ts){
         this.status = s;
         this.value = v;
         this.stateEntered = ts;
@@ -61,7 +60,7 @@ public class State {
         this.clearPendingTransition();
     }
 
-    public void setValue(double v) {
+    public void setValue(T v) {
         this.value = v;
     }
     

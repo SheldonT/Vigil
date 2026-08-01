@@ -1,18 +1,44 @@
 package com.vigil.monitor;
 
 import java.time.Instant;
+import java.util.Map;
+
+import com.vigil.alarm.AlarmEvaluator;
+import com.vigil.config.ConfigValidator;
 
 public class CpuMonitor extends Monitor<Double>{
 
-    private final SystemMetricsProvider metrics;
-    private final double telemetryDeadband;
+    public record Configuration(String type, boolean enabled, double telemetryDeadband) implements MonitorConfig{
     
 
-    public CpuMonitor(SystemMetricsProvider metrics, double telemetryDeadband) {
-        super("CPU");
-        this.telemetryDeadband = telemetryDeadband;
+        public static Configuration fromMap(Map<String, Object> map){
 
+            Map<String, Object> validMap = ConfigValidator.requireMap(map, "CPU Monitor Map");
+            Configuration config = new Configuration(
+                ConfigValidator.requireString(validMap, "CPU Monitor", "type"),
+                ConfigValidator.requireBool(validMap, "CPU Monitor", "enabled"),
+                ConfigValidator.requireDouble(validMap, "CPU Monitor", "telemetryDeadband")
+            );
+
+            return config;
+        }
+
+        @Override
+        public String getType(){
+            return "CPU";
+        }
+    }
+
+    private final SystemMetricsProvider metrics;
+    private final Configuration config;
+    private final AlarmEvaluator<Double> evaluator;
+    
+    public CpuMonitor(SystemMetricsProvider metrics, AlarmEvaluator<Double> evaluator, Configuration config) {
+
+        super("CPU");
+        this.config = config;
         this.metrics = metrics;
+        this.evaluator = evaluator;
     }
 
     @Override
@@ -26,6 +52,11 @@ public class CpuMonitor extends Monitor<Double>{
 
     @Override
     public double getTelemetryDeadband() {
-        return this.telemetryDeadband;
+        return this.config.telemetryDeadband();
+    }
+
+    @Override
+    public AlarmEvaluator<Double> getAlarmEvaluator() {
+        return this.evaluator;
     }
 }

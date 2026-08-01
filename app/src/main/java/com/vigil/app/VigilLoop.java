@@ -1,11 +1,9 @@
 package com.vigil.app;
 
 import java.util.List;
-import java.util.Map;
 import java.util.logging.Logger;
 
 import com.vigil.monitor.Monitor;
-import com.vigil.alarm.AlarmConfig;
 import com.vigil.alarm.AlarmEngine;
 import com.vigil.alarm.AlarmResult;
 import com.vigil.dispatcher.Dispatcher;
@@ -23,9 +21,9 @@ public class VigilLoop {
     private final List<Monitor<?>> monitors;
     private final TelemetryTracker telemetry;
 
-    public VigilLoop(List<Monitor<?>> monitors, List<Dispatcher> dispatchers, Map<String, AlarmConfig> alarmConfigs){
+    public VigilLoop(List<Monitor<?>> monitors, List<Dispatcher> dispatchers){
 
-        this.alarmEngine = new AlarmEngine(monitors, alarmConfigs);
+        this.alarmEngine = new AlarmEngine(monitors);
         this.dispatchers = dispatchers;
         this.monitors = monitors;
 
@@ -47,20 +45,23 @@ public class VigilLoop {
         while(runLoop){
             for (Monitor<?> m : this.monitors){
                 try{
-                    MonitorReading<?> value = m.read();
-
-                    AlarmResult result = this.alarmEngine.evaluate(value);
-                    Boolean sendTelemetry = this.telemetry.shouldDispatch(value);
-
-                    for (Dispatcher d : this.dispatchers){
-                        if (sendTelemetry) d.sendValue(value);
-                        if (result != null) d.sendAlarm(result);
-                    }
+                    processMonitor(m);
                 } catch (Exception e) {
                     logger.severe(e + "in program loop");
                 }
             }
             this.sleep(500);
+        }
+    }
+
+    private <T> void processMonitor(Monitor<T> monitor) {
+        MonitorReading<T> value = monitor.read();
+        AlarmResult<T> result = this.alarmEngine.evaluate(value, monitor.getAlarmEvaluator());
+        Boolean sendTelemetry = this.telemetry.shouldDispatch(value);
+
+        for (Dispatcher d : this.dispatchers){
+            if (sendTelemetry) d.sendValue(value);
+            if (result != null) d.sendAlarm(result);
         }
     }
 
