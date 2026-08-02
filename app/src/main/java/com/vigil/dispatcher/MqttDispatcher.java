@@ -6,7 +6,7 @@ import java.util.Map;
 import com.hivemq.client.mqtt.MqttClient;
 import com.hivemq.client.mqtt.mqtt5.Mqtt5AsyncClient;
 
-import com.vigil.alarm.AlarmResult;
+import com.vigil.alarm.AlarmMessage;
 import com.vigil.config.ConfigValidator;
 import com.vigil.monitor.MonitorReading;
 
@@ -68,9 +68,9 @@ public class MqttDispatcher extends Dispatcher{
     }
 
     @Override
-    public void sendAlarm(AlarmResult result){
+    public void sendAlarm(AlarmMessage<?> result){
 
-        String payload = result.timestampNow + "," + result.name + "," + result.status + "," + result.value;
+        String payload = result.lastUpdated()+ "," + result.alarmId() + "," + result.name() + "," + result.status() + "," + result.value();
         String topic = this.config.topic() + "/alarm";
 
         this.client.publishWith()

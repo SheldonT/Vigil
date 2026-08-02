@@ -5,7 +5,6 @@ import java.util.Map;
 
 import com.vigil.monitor.JvmSystemMetricsProvider;
 import com.vigil.monitor.Monitor;
-import com.vigil.alarm.NumericAlarmConfig;
 import com.vigil.config.ConfigLoader;
 import com.vigil.monitor.SystemMetricsProvider;
 import com.vigil.config.TomlReader;

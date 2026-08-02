@@ -9,7 +9,7 @@ import java.nio.file.StandardOpenOption;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 
-import com.vigil.alarm.AlarmResult;
+import com.vigil.alarm.AlarmMessage;
 import com.vigil.config.ConfigValidator;
 import com.vigil.monitor.MonitorReading;
 
@@ -47,9 +47,9 @@ public class FileDispatcher extends Dispatcher{
     }
     
     @Override
-    public void sendAlarm(AlarmResult result){
+    public void sendAlarm(AlarmMessage<?> result){
 
-        String eventString = "STATUS => " + result.timestampNow + " - " + result.name + " " + result.status + " : " + result.value;
+        String eventString = "STATUS => " + result.lastUpdated() + " - " + result.name() + " - " + result.alarmId() + " " + result.status() + " : " + result.value();
         
         this.writeLine(eventString);
     }

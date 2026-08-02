@@ -9,6 +9,7 @@ import com.vigil.alarm.AlarmResult;
 import com.vigil.dispatcher.Dispatcher;
 import com.vigil.monitor.MonitorReading;
 import com.vigil.telemetry.TelemetryTracker;
+import com.vigil.alarm.AlarmMessage;
 
 public class VigilLoop {
     
@@ -56,7 +57,7 @@ public class VigilLoop {
 
     private <T> void processMonitor(Monitor<T> monitor) {
         MonitorReading<T> value = monitor.read();
-        AlarmResult<T> result = this.alarmEngine.evaluate(value, monitor.getAlarmEvaluator());
+        AlarmMessage<T> result = this.alarmEngine.evaluate(value, monitor.getAlarmEvaluator());
         Boolean sendTelemetry = this.telemetry.shouldDispatch(value);
 
         for (Dispatcher d : this.dispatchers){

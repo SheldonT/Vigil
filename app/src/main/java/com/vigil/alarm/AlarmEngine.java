@@ -13,6 +13,8 @@ public class AlarmEngine {
     //private final Map<String, NumericAlarmConfig> alarmConfigs;
     private final Map<String, State<?>> monitorStates = new HashMap<>();
 
+    private final Map<String, AlarmState<?>> alarmStates = new HashMap<>();
+
 
     public AlarmEngine(List<Monitor<?>> monitors) {
 
@@ -39,34 +41,86 @@ public class AlarmEngine {
         initialState.setState(status, reading.value(), now);
         initialState.setLastEvaluated(now);
 
+        if (status != Status.OK) {
+            AlarmResult<T> initialAlarm = new AlarmResult<>(
+                monitor.getName(),
+                reading.value(),
+                status,
+                now
+            );
+            this.alarmStates.put(monitor.getName(), new AlarmState<>(initialAlarm));
+        }
+
         return initialState;
     }
 
-    public <T> AlarmResult<T> evaluate(MonitorReading<T> value, AlarmEvaluator<T> evaluator) {
+    public <T> AlarmMessage<T> evaluate(MonitorReading<T> value, AlarmEvaluator<T> evaluator) {
 
-        State<T> state = getState(value.name());
+        State<T> monitorState = getState(value.name());
 
-        Status newStatus = evaluator.evaluate(value, state);
-
-        AlarmResult<T> event = null;
-
+        Status newStatus = evaluator.evaluate(value, monitorState);
         Instant now = Instant.now();
 
-        if (newStatus != state.getStatus() ) {
-            event = new AlarmResult<>(value.name(), value.value(), newStatus, now);
+        AlarmMessage<T> message = null;
+        
+        if (newStatus != monitorState.getStatus()) {
 
-            state.transitionTo(newStatus, now);
+            monitorState.transitionTo(newStatus, now);
+            AlarmResult<T> event = new AlarmResult<T>(value.name(), value.value(), newStatus, now);
+            AlarmState<T> updatedAlarmState = this.updateAlarmState(event);
+
+            if (updatedAlarmState != null) {
+                message = new AlarmMessage<>(
+                    updatedAlarmState.getAlarmId(),
+                    value.name(),
+                    value.value(),
+                    updatedAlarmState.getCurrentStatus(),
+                    updatedAlarmState.getAcknowledged(),
+                    updatedAlarmState.getActivatedAt(),
+                    updatedAlarmState.getAcknowledgedAt(),
+                    updatedAlarmState.getLastUpdated()
+                );
+            }
         }
 
-        state.setValue(value.value());
-        state.setLastEvaluated(now);
+        monitorState.setValue(value.value());
+        monitorState.setLastEvaluated(now);
+        
+        return message;
+    }
 
-        return event;
+    private <T> AlarmState<T> updateAlarmState(AlarmResult<T> result){
+
+        AlarmState<T> current = getAlarmState(result.name());
+
+        if (result.status() == Status.OK) {
+            if (current == null) {
+                return null;
+            }
+
+            current.update(result);
+            alarmStates.remove(result.name());
+            return current;
+        }
+
+        if (current == null) {
+            AlarmState<T> created = new AlarmState<>(result);
+            alarmStates.put(result.name(), created);
+            return created;
+        }
+
+        current.update(result);
+        return current;
     }
 
     @SuppressWarnings("unchecked")
     private <T> State<T> getState(String monitorName) {
         return (State<T>) this.monitorStates.get(monitorName);
+    }
+
+    @SuppressWarnings("unchecked")
+    private <T> AlarmState<T> getAlarmState(String monitorName) {
+        return (AlarmState<T>) this.alarmStates.get(monitorName);
     }
     
 }

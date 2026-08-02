@@ -76,7 +76,7 @@ class AlarmEngineTest {
         return new AlarmEngine(List.of(monitor));
     }
 
-    private AlarmResult<Double> evaluate(AlarmEngine engine, StubMonitor monitor) {
+    private AlarmMessage<Double> evaluate(AlarmEngine engine, StubMonitor monitor) {
         return engine.evaluate(monitor.read(), monitor.getAlarmEvaluator());
     }
 
@@ -89,7 +89,7 @@ class AlarmEngineTest {
         StubMonitor monitor = new StubMonitor("CPU", initialValue, evaluator);
         AlarmEngine engine = engineWith(monitor);
 
-        AlarmResult<Double> events = evaluate(engine, monitor);
+        AlarmMessage<Double> events = evaluate(engine, monitor);
 
         assertTrue(events == null, "No event expected when value stays OK");
     }
@@ -106,10 +106,10 @@ class AlarmEngineTest {
         MonitorReading<Double> testValue = new MonitorReading<Double>("CPU", 82.0, Instant.now());
 
         monitor.setValue(testValue);   // crosses HIGH_WARN (80)
-        AlarmResult<Double> event = evaluate(engine, monitor);
+        AlarmMessage<Double> event = evaluate(engine, monitor);
 
         assertTrue(event != null, "Event expected when crossing high warning");
-        assertEquals(Status.HIGH_WARNING, event.status);
+        assertEquals(Status.HIGH_WARNING, event.status());
     }
 
     @Test
@@ -122,7 +122,7 @@ class AlarmEngineTest {
         MonitorReading<Double> testValue = new MonitorReading<Double>("CPU", 83.0, Instant.now());
 
         monitor.setValue(testValue);      // still in HIGH_WARNING zone
-        AlarmResult<Double> event = evaluate(engine, monitor);
+        AlarmMessage<Double> event = evaluate(engine, monitor);
 
         assertTrue(event == null, "No event expected while value stays in HIGH_WARNING");
     }
@@ -140,10 +140,10 @@ class AlarmEngineTest {
         MonitorReading<Double> testValue = new MonitorReading<Double>("CPU", 92.0, Instant.now());
 
         monitor.setValue(testValue);   // crosses HIGH_ALARM (90)
-        AlarmResult<Double> event = evaluate(engine, monitor);
+        AlarmMessage<Double> event = evaluate(engine, monitor);
 
         assertTrue(event != null, "Event expected while value crossing into HIGH_ALARM");
-        assertEquals(Status.HIGH_ALARM, event.status);
+        assertEquals(Status.HIGH_ALARM, event.status());
     }
 
     // ---- LOW_WARNING transitions ----
@@ -157,10 +157,10 @@ class AlarmEngineTest {
         MonitorReading<Double> testValue = new MonitorReading<Double>("CPU", 18.0, Instant.now());
 
         monitor.setValue(testValue);   // crosses LOW_WARN (20)
-        AlarmResult<Double> event = evaluate(engine, monitor);
+        AlarmMessage<Double> event = evaluate(engine, monitor);
 
         assertTrue(event != null, "Event expected while value crossing below LOW_WARNING");
-        assertEquals(Status.LOW_WARNING, event.status);
+        assertEquals(Status.LOW_WARNING, event.status());
     }
 
     // ---- LOW_ALARM transitions ----
@@ -175,10 +175,10 @@ class AlarmEngineTest {
         MonitorReading<Double> testValue = new MonitorReading<Double>("CPU", 8.0, Instant.now());
 
         monitor.setValue(testValue);   // crosses LOW_ALARM (10)
-        AlarmResult<Double> event = evaluate(engine, monitor);
+        AlarmMessage<Double> event = evaluate(engine, monitor);
 
         assertTrue(event != null, "Event expected while value crossing below LOW_ALARM");
-        assertEquals(Status.LOW_ALARM, event.status);
+        assertEquals(Status.LOW_ALARM, event.status());
     }
 
     // ---- clearing back to OK ----
@@ -194,10 +194,10 @@ class AlarmEngineTest {
 
 
         monitor.setValue(testValue);   // drops below HIGH_WARN_CLEAR (75) → OK
-        AlarmResult<Double> event = evaluate(engine, monitor);
+        AlarmMessage<Double> event = evaluate(engine, monitor);
 
         assertTrue(event != null, "Event expected while value crossing from ALARM_HIGH to OK");
-        assertEquals(Status.OK, event.status);
+        assertEquals(Status.OK, event.status());
     }
 
     // ---- constructor behavior ----
