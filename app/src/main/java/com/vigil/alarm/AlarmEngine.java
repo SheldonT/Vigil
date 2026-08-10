@@ -7,11 +7,12 @@ import java.time.Instant;
 
 import com.vigil.monitor.Monitor;
 import com.vigil.monitor.MonitorReading;
+import java.util.UUID;
 
 public class AlarmEngine {
 
     //private final Map<String, NumericAlarmConfig> alarmConfigs;
-    private final Map<String, State<?>> monitorStates = new HashMap<>();
+    private final Map<String, MonitorState<?>> monitorStates = new HashMap<>();
 
     private final Map<String, AlarmState<?>> alarmStates = new HashMap<>();
 
@@ -25,16 +26,16 @@ public class AlarmEngine {
             //     throw new IllegalStateException("Missing alarm configs for " + m.getName());
             // }
 
-            State<?> initialState = initializeState(m);
+            MonitorState<?> initialState = initializeState(m);
             this.monitorStates.put(m.getName(), initialState);
         }
     }
     
-    private <T> State<T> initializeState(Monitor<T> monitor){
+    private <T> MonitorState<T> initializeState(Monitor<T> monitor){
 
         MonitorReading<T> reading = monitor.read();
         AlarmEvaluator<T> evaluator = monitor.getAlarmEvaluator();
-        State<T> initialState = new State<>(monitor.getName());
+        MonitorState<T> initialState = new MonitorState<>(monitor.getName());
         Instant now = Instant.now();
         Status status = evaluator.evaluate(reading, initialState);
 
@@ -56,7 +57,7 @@ public class AlarmEngine {
 
     public <T> AlarmMessage<T> evaluate(MonitorReading<T> value, AlarmEvaluator<T> evaluator) {
 
-        State<T> monitorState = getState(value.name());
+        MonitorState<T> monitorState = getState(value.name());
 
         Status newStatus = evaluator.evaluate(value, monitorState);
         Instant now = Instant.now();
@@ -70,16 +71,7 @@ public class AlarmEngine {
             AlarmState<T> updatedAlarmState = this.updateAlarmState(event);
 
             if (updatedAlarmState != null) {
-                message = new AlarmMessage<>(
-                    updatedAlarmState.getAlarmId(),
-                    value.name(),
-                    value.value(),
-                    updatedAlarmState.getCurrentStatus(),
-                    updatedAlarmState.getAcknowledged(),
-                    updatedAlarmState.getActivatedAt(),
-                    updatedAlarmState.getAcknowledgedAt(),
-                    updatedAlarmState.getLastUpdated()
-                );
+                message = updatedAlarmState.toMessage();
             }
         }
 
@@ -113,9 +105,22 @@ public class AlarmEngine {
         return current;
     }
 
+    public AlarmMessage<?> acknowledgeAlarm(UUID alarmId) {
+
+        for (AlarmState<?> alarm : alarmStates.values()){
+           if (alarm.getAlarmId().equals(alarmId)){
+                alarm.acknowledge();
+        
+                return alarm.toMessage();
+           }
+        }
+
+        return null;
+    }
+
     @SuppressWarnings("unchecked")
-    private <T> State<T> getState(String monitorName) {
-        return (State<T>) this.monitorStates.get(monitorName);
+    private <T> MonitorState<T> getState(String monitorName) {
+        return (MonitorState<T>) this.monitorStates.get(monitorName);
     }
 
     @SuppressWarnings("unchecked")

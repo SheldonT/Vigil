@@ -31,6 +31,19 @@ public class AlarmState<T> {
         this.acknowledged = false;
     }
 
+    public AlarmMessage<T> toMessage() {
+        return new AlarmMessage<>(
+            this.alarmId,
+            this.name,
+            this.currentValue,
+            this.status,
+            this.acknowledged,
+            this.activatedAt,
+            this.acknowledgedAt,
+            this.lastUpdated
+        );
+    }
+
     public void update(AlarmResult<T> result){
 
         if (this.status != result.status()) {
@@ -43,7 +56,7 @@ public class AlarmState<T> {
         this.status = result.status();
     }
 
-    public void acknowledge(String user) {
+    public void acknowledge() {
         this.acknowledged = true;
         this.acknowledgedAt = Instant.now();
     }

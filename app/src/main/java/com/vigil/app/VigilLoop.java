@@ -5,11 +5,11 @@ import java.util.logging.Logger;
 
 import com.vigil.monitor.Monitor;
 import com.vigil.alarm.AlarmEngine;
-import com.vigil.alarm.AlarmResult;
 import com.vigil.dispatcher.Dispatcher;
 import com.vigil.monitor.MonitorReading;
 import com.vigil.telemetry.TelemetryTracker;
 import com.vigil.alarm.AlarmMessage;
+import com.vigil.listener.Listener;
 
 public class VigilLoop {
     
@@ -20,13 +20,15 @@ public class VigilLoop {
     private final AlarmEngine alarmEngine;
     private final List<Dispatcher> dispatchers;
     private final List<Monitor<?>> monitors;
+    private final List<Listener> listeners;
     private final TelemetryTracker telemetry;
 
-    public VigilLoop(List<Monitor<?>> monitors, List<Dispatcher> dispatchers){
+    public VigilLoop(List<Monitor<?>> monitors, List<Dispatcher> dispatchers, List<Listener> listeners, AlarmEngine alarmEngine){
 
-        this.alarmEngine = new AlarmEngine(monitors);
+        this.alarmEngine = alarmEngine;
         this.dispatchers = dispatchers;
         this.monitors = monitors;
+        this.listeners = listeners;
 
         this.telemetry = new TelemetryTracker(monitors);
     }
@@ -42,6 +44,10 @@ public class VigilLoop {
     public void start(){
         
         logger.info("Starting Vigil...");
+
+        for (Listener l : this.listeners){
+            l.start();
+        }
 
         while(runLoop){
             for (Monitor<?> m : this.monitors){

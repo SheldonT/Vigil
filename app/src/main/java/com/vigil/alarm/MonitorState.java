@@ -2,7 +2,7 @@ package com.vigil.alarm;
 
 import java.time.Instant;
 
-public class State<T> {
+public class MonitorState<T> {
 
     private final String id;
     private Status status;
@@ -13,7 +13,7 @@ public class State<T> {
     private Instant pendingSince;
 
     
-    public State (String id){
+    public MonitorState (String id){
         this.id = id;
         this.stateEntered = Instant.now();
         this.pendingSince = Instant.now();

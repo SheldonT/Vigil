@@ -13,7 +13,10 @@ import com.vigil.app.LoggerConfig;
 import com.vigil.monitor.SystemMetricsProvider;
 import com.vigil.factory.MonitorFactory;
 import com.vigil.factory.DispatcherFactory;
+import com.vigil.factory.ListenerFactory;
+import com.vigil.listener.Listener;
 import com.vigil.dispatcher.Dispatcher;
+import com.vigil.alarm.AlarmEngine;
 
 public class ConfigLoader {
 
@@ -91,6 +94,23 @@ public class ConfigLoader {
             logger.info(dispatcherObj.size() + " dispatchers created");
 
             return dispatcherObj;
+     }
+
+    public List<Listener> buildListeners(AlarmEngine alarmEngine){
+
+        logger.info("Building listener list...");
+        Map<String, Object> listeners = ConfigValidator.requireMap(config.get("listener"), "Dispatcher Config Map");
+        List<Listener> listenerObj = new ArrayList<>();
+
+        for (Map.Entry<String, Object> entry : listeners.entrySet()) {
+            Map<String, Object> listener = ConfigValidator.requireMap(entry.getValue(), "listener Settings");
+            logger.info("Adding " + entry.getKey() + " to listener list");
+            listenerObj.add(ListenerFactory.create(listener, alarmEngine));
+        }
+
+        logger.info(listenerObj.size() + " dispatchers created");
+
+        return listenerObj;
      }
 
      public void buildLogger() throws IOException{

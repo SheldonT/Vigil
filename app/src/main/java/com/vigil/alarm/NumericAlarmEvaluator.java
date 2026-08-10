@@ -15,7 +15,7 @@ public class NumericAlarmEvaluator extends AlarmEvaluator<Double> {
     }
 
     private boolean pendingTimeElapsed(
-        State<Double> state,
+        MonitorState<Double> state,
         Instant now,
         long delayMs) {
 
@@ -45,7 +45,7 @@ public class NumericAlarmEvaluator extends AlarmEvaluator<Double> {
         return status;
     }
 
-    private Status evaluateFromHighWarning(double value, State<Double> state, Instant now){
+    private Status evaluateFromHighWarning(double value, MonitorState<Double> state, Instant now){
 
         //check if we need to move to OK status
         if (value >= this.config.getHighAlarm()) {
@@ -75,7 +75,7 @@ public class NumericAlarmEvaluator extends AlarmEvaluator<Double> {
         return Status.HIGH_WARNING;
     }
 
-    private Status evaluateFromLowWarning(double value, State<Double> state, Instant now){
+    private Status evaluateFromLowWarning(double value, MonitorState<Double> state, Instant now){
 
         //check if we need to move to OK status
         if (value <= this.config.getLowAlarm()) {
@@ -105,7 +105,7 @@ public class NumericAlarmEvaluator extends AlarmEvaluator<Double> {
         return Status.LOW_WARNING;
     }
 
-    private Status evaluateFromHighAlarm (double value, State<Double> state, Instant now){
+    private Status evaluateFromHighAlarm (double value, MonitorState<Double> state, Instant now){
 
         if (value <= this.config.getHighAlarmClear()) {
             if (state.getPendingStatus() != Status.HIGH_WARNING){
@@ -124,7 +124,7 @@ public class NumericAlarmEvaluator extends AlarmEvaluator<Double> {
         return Status.HIGH_ALARM;
     }
 
-    private Status evaluateFromLowAlarm (double value, State<Double> state, Instant now){
+    private Status evaluateFromLowAlarm (double value, MonitorState<Double> state, Instant now){
 
         if (value >= this.config.getLowAlarmClear()) {
             if (state.getPendingStatus() != Status.LOW_WARNING){
@@ -143,7 +143,7 @@ public class NumericAlarmEvaluator extends AlarmEvaluator<Double> {
         return Status.LOW_ALARM;
     }
 
-    private Status evaluateStatusTransition(double value, State<Double> state, NumericAlarmConfig config, Instant now){
+    private Status evaluateStatusTransition(double value, MonitorState<Double> state, NumericAlarmConfig config, Instant now){
 
         switch (state.getStatus()){
             case OK:
@@ -161,7 +161,7 @@ public class NumericAlarmEvaluator extends AlarmEvaluator<Double> {
         }
     }
     
-    public Status evaluate(MonitorReading<Double> value, State<Double> currentState){
+    public Status evaluate(MonitorReading<Double> value, MonitorState<Double> currentState){
 
         Instant now = Instant.now();
 

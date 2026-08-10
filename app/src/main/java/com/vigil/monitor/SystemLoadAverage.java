@@ -4,7 +4,6 @@ import java.time.Instant;
 import java.util.Map;
 
 import com.vigil.alarm.AlarmEvaluator;
-import com.vigil.alarm.NumericAlarmConfig;
 import com.vigil.config.ConfigValidator;
 
 public class SystemLoadAverage extends Monitor<Double>{

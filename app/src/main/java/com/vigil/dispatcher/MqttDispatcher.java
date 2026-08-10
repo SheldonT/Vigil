@@ -12,7 +12,7 @@ import com.vigil.monitor.MonitorReading;
 
 public class MqttDispatcher extends Dispatcher{
 
-        public record Configuration(String host, String topic, int port) implements DispatcherConfig{
+    public record Configuration(String host, String topic, int port) implements DispatcherConfig{
 
         public static Configuration fromMap(Map<String, Object> map){
 
