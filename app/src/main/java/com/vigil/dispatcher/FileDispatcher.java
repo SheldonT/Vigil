@@ -9,6 +9,7 @@ import java.nio.file.StandardOpenOption;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 
+import com.vigil.alarm.AlarmAcknowledge;
 import com.vigil.alarm.AlarmMessage;
 import com.vigil.config.ConfigValidator;
 import com.vigil.monitor.MonitorReading;
@@ -59,6 +60,13 @@ public class FileDispatcher extends Dispatcher{
         String telemetryString = "TELEMETRY => " + result.timestamp() + " - " + result.name() + " : " + result.value();
 
         this.writeLine(telemetryString);
+    }
+
+    @Override
+    public void sendAlarmAcknowledgement(AlarmAcknowledge acknowledgement){
+        String ackString = "ALARM ACK => " + acknowledgement.acknowledgedAt()+ " - " + acknowledgement.source() + " - " + acknowledgement.alarmId() + " - " + "ACK";
+
+        this.writeLine(ackString);
     }
 
     private void writeLine(String line){

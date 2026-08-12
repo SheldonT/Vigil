@@ -1,8 +1,10 @@
 package com.vigil.alarm;
 
+import java.util.ArrayDeque;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Queue;
 import java.time.Instant;
 
 import com.vigil.monitor.Monitor;
@@ -13,10 +15,11 @@ public class AlarmEngine {
 
     //private final Map<String, NumericAlarmConfig> alarmConfigs;
     private final Map<String, MonitorState<?>> monitorStates = new HashMap<>();
-
     private final Map<String, AlarmState<?>> alarmStates = new HashMap<>();
+    private final Queue<AlarmMessage<?>> startupAlarms = new ArrayDeque<>();
 
-
+    private AlarmAcknowledgeQueue ackQueue = new AlarmAcknowledgeQueue();
+    
     public AlarmEngine(List<Monitor<?>> monitors) {
 
         //this.alarmConfigs = alarmConfigs;
@@ -49,7 +52,9 @@ public class AlarmEngine {
                 status,
                 now
             );
-            this.alarmStates.put(monitor.getName(), new AlarmState<>(initialAlarm));
+            AlarmState<T> alarmState = new AlarmState<>(initialAlarm);
+            this.alarmStates.put(monitor.getName(), alarmState);
+            this.startupAlarms.offer(alarmState.toMessage());
         }
 
         return initialState;
@@ -110,12 +115,21 @@ public class AlarmEngine {
         for (AlarmState<?> alarm : alarmStates.values()){
            if (alarm.getAlarmId().equals(alarmId)){
                 alarm.acknowledge();
-        
+                this.ackQueue.submit(new AlarmAcknowledge(alarmId, Instant.now(), alarm.getName()));
+                
                 return alarm.toMessage();
            }
         }
 
         return null;
+    }
+
+    public AlarmMessage<?> pollStartupAlarm() {
+        return this.startupAlarms.poll();
+    }
+
+    public AlarmAcknowledgeQueue getAckQueue(){
+        return this.ackQueue;
     }
 
     @SuppressWarnings("unchecked")

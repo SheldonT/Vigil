@@ -4,6 +4,7 @@ import java.util.List;
 import java.util.logging.Logger;
 
 import com.vigil.monitor.Monitor;
+import com.vigil.alarm.AlarmAcknowledge;
 import com.vigil.alarm.AlarmEngine;
 import com.vigil.dispatcher.Dispatcher;
 import com.vigil.monitor.MonitorReading;
@@ -22,6 +23,7 @@ public class VigilLoop {
     private final List<Monitor<?>> monitors;
     private final List<Listener> listeners;
     private final TelemetryTracker telemetry;
+
 
     public VigilLoop(List<Monitor<?>> monitors, List<Dispatcher> dispatchers, List<Listener> listeners, AlarmEngine alarmEngine){
 
@@ -49,6 +51,8 @@ public class VigilLoop {
             l.start();
         }
 
+        this.dispatchStartupAlarms();
+
         while(runLoop){
             for (Monitor<?> m : this.monitors){
                 try{
@@ -57,6 +61,9 @@ public class VigilLoop {
                     logger.severe(e + "in program loop");
                 }
             }
+
+            this.processAlarmAcknowledge();
+
             this.sleep(500);
         }
     }
@@ -69,6 +76,30 @@ public class VigilLoop {
         for (Dispatcher d : this.dispatchers){
             if (sendTelemetry) d.sendValue(value);
             if (result != null) d.sendAlarm(result);
+        }
+    }
+
+    private void dispatchStartupAlarms() {
+        AlarmMessage<?> alarm;
+        while ((alarm = this.alarmEngine.pollStartupAlarm()) != null) {
+            for (Dispatcher dispatcher : this.dispatchers) {
+                dispatcher.sendAlarm(alarm);
+            }
+        }
+    }
+
+    private void processAlarmAcknowledge(){
+
+        while (true){
+            AlarmAcknowledge acknowledgement = this.alarmEngine.getAckQueue().poll();
+
+            if (acknowledgement == null) {
+                break;
+            }
+
+            for (Dispatcher dispatcher : dispatchers) {
+                dispatcher.sendAlarmAcknowledgement(acknowledgement);
+            }
         }
     }
 
