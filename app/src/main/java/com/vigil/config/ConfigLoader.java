@@ -17,6 +17,7 @@ import com.vigil.factory.ListenerFactory;
 import com.vigil.listener.Listener;
 import com.vigil.dispatcher.Dispatcher;
 import com.vigil.alarm.AlarmEngine;
+import com.vigil.app.AppConfig;
 
 public class ConfigLoader {
 
@@ -30,6 +31,12 @@ public class ConfigLoader {
             this.config = config;
 
             this.provider = provider;
+    }
+
+    public AppConfig buildAppConfig() {
+         Map<String, Object> appConfigMap = ConfigValidator.requireMap(this.config.get("app"), "App Config");
+
+         return AppConfig.fromMap("app", appConfigMap);
     }
 
     public List<Monitor<?>> buildMonitors(){

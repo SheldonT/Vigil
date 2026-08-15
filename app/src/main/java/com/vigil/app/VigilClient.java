@@ -34,6 +34,8 @@ public class VigilClient {
 
             ConfigLoader loader = new ConfigLoader(parseToml, provider);
 
+            AppConfig appConfig = loader.buildAppConfig();
+
             //build logger
             loader.buildLogger();
 
@@ -49,7 +51,7 @@ public class VigilClient {
             //build a list of dispatchers
             List<Dispatcher> dispatchers = loader.buildDispatchers();
 
-            mainLoop = new VigilLoop(monitors, dispatchers, listeners, alarmEngine);
+            mainLoop = new VigilLoop(appConfig, monitors, dispatchers, listeners, alarmEngine);
 
             shutdownHandler.register(mainLoop::stop);
 

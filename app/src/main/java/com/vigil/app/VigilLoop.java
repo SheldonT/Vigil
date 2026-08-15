@@ -19,15 +19,17 @@ public class VigilLoop {
     private static final Logger logger = Logger.getLogger(VigilLoop.class.getName());
 
     private final AlarmEngine alarmEngine;
+    private final AppConfig appConfig;
     private final List<Dispatcher> dispatchers;
     private final List<Monitor<?>> monitors;
     private final List<Listener> listeners;
     private final TelemetryTracker telemetry;
 
 
-    public VigilLoop(List<Monitor<?>> monitors, List<Dispatcher> dispatchers, List<Listener> listeners, AlarmEngine alarmEngine){
+    public VigilLoop(AppConfig appConfig, List<Monitor<?>> monitors, List<Dispatcher> dispatchers, List<Listener> listeners, AlarmEngine alarmEngine){
 
         this.alarmEngine = alarmEngine;
+        this.appConfig = appConfig;
         this.dispatchers = dispatchers;
         this.monitors = monitors;
         this.listeners = listeners;
@@ -35,7 +37,7 @@ public class VigilLoop {
         this.telemetry = new TelemetryTracker(monitors);
     }
 
-    private void sleep (int ms) {
+    private void sleep (long ms) {
         try {
             Thread.sleep(ms);
         } catch(Exception e) {
@@ -64,7 +66,7 @@ public class VigilLoop {
 
             this.processAlarmAcknowledge();
 
-            this.sleep(500);
+            this.sleep(appConfig.getPollingIntervalMs());
         }
     }
 
