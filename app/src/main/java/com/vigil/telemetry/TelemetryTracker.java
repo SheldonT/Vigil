@@ -5,19 +5,19 @@ import java.util.Map;
 import java.util.HashMap;
 
 import com.vigil.monitor.Monitor;
-import com.vigil.monitor.MonitorReading;
+import com.vigil.monitor.TelemetryOut;
 
 public class TelemetryTracker {
 
-    private Map<String, MonitorReading<?>> lastReadings = new HashMap<>();
+    private Map<String, TelemetryOut<?>> lastReadings = new HashMap<>();
     private Map<String, Double> telemetryDeadbands = new HashMap<>();
     
     public TelemetryTracker(List<Monitor<?>> monitorList){
         this.lastReadings = initLastValue(monitorList);
     }
 
-    private Map<String, MonitorReading<?>> initLastValue(List<Monitor<?>> monitorList){
-        Map<String, MonitorReading<?>> initialReadings = new HashMap<>();
+    private Map<String, TelemetryOut<?>> initLastValue(List<Monitor<?>> monitorList){
+        Map<String, TelemetryOut<?>> initialReadings = new HashMap<>();
 
         for (Monitor<?> m : monitorList){
             initialReadings.put(m.getName(), null);
@@ -27,9 +27,9 @@ public class TelemetryTracker {
         return initialReadings;
     }
 
-    public Boolean shouldDispatch(MonitorReading<?> current){
+    public Boolean shouldDispatch(TelemetryOut<?> current){
 
-        MonitorReading<?> previous = this.lastReadings.get(current.name());
+        TelemetryOut<?> previous = this.lastReadings.get(current.name());
         Double telemetryDeadband = this.telemetryDeadbands.get(current.name());
 
         if ( previous == null || Math.abs((double)previous.value() - (double)current.value()) > telemetryDeadband){

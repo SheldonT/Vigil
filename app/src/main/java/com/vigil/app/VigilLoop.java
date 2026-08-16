@@ -4,10 +4,10 @@ import java.util.List;
 import java.util.logging.Logger;
 
 import com.vigil.monitor.Monitor;
-import com.vigil.alarm.AlarmAcknowledge;
+import com.vigil.alarm.AlarmAcknowledgeOut;
 import com.vigil.alarm.AlarmEngine;
 import com.vigil.dispatcher.Dispatcher;
-import com.vigil.monitor.MonitorReading;
+import com.vigil.monitor.TelemetryOut;
 import com.vigil.telemetry.TelemetryTracker;
 import com.vigil.alarm.AlarmMessage;
 import com.vigil.listener.Listener;
@@ -53,6 +53,10 @@ public class VigilLoop {
             l.start();
         }
 
+        for (Dispatcher d : this.dispatchers){
+            d.start();
+        }
+
         this.dispatchStartupAlarms();
 
         while(runLoop){
@@ -71,7 +75,7 @@ public class VigilLoop {
     }
 
     private <T> void processMonitor(Monitor<T> monitor) {
-        MonitorReading<T> value = monitor.read();
+        TelemetryOut<T> value = monitor.read();
         AlarmMessage<T> result = this.alarmEngine.evaluate(value, monitor.getAlarmEvaluator());
         Boolean sendTelemetry = this.telemetry.shouldDispatch(value);
 
@@ -93,13 +97,15 @@ public class VigilLoop {
     private void processAlarmAcknowledge(){
 
         while (true){
-            AlarmAcknowledge acknowledgement = this.alarmEngine.getAckQueue().poll();
 
+            AlarmAcknowledgeOut acknowledgement = this.alarmEngine.getAckQueue().poll();
+            
             if (acknowledgement == null) {
                 break;
             }
 
             for (Dispatcher dispatcher : dispatchers) {
+                
                 dispatcher.sendAlarmAcknowledgement(acknowledgement);
             }
         }

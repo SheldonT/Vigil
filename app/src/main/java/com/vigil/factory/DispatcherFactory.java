@@ -5,6 +5,7 @@ import java.util.Map;
 import com.vigil.dispatcher.Dispatcher;
 import com.vigil.dispatcher.FileDispatcher;
 import com.vigil.dispatcher.MqttDispatcher;
+import com.vigil.dispatcher.WebSocketDispatcher;
 
 public class DispatcherFactory{
 
@@ -19,6 +20,9 @@ public class DispatcherFactory{
             
             case "MQTT":
                 return new MqttDispatcher(MqttDispatcher.Configuration.fromMap(config));
+
+            case "WebSocket":
+                return new WebSocketDispatcher(WebSocketDispatcher.Configuration.fromMap(config));
                 
             default:
                 throw new IllegalArgumentException("Unknown dispatcher type: " + dispatchType);

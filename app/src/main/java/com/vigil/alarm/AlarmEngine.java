@@ -8,7 +8,7 @@ import java.util.Queue;
 import java.time.Instant;
 
 import com.vigil.monitor.Monitor;
-import com.vigil.monitor.MonitorReading;
+import com.vigil.monitor.TelemetryOut;
 import java.util.UUID;
 
 public class AlarmEngine {
@@ -36,7 +36,7 @@ public class AlarmEngine {
     
     private <T> MonitorState<T> initializeState(Monitor<T> monitor){
 
-        MonitorReading<T> reading = monitor.read();
+        TelemetryOut<T> reading = monitor.read();
         AlarmEvaluator<T> evaluator = monitor.getAlarmEvaluator();
         MonitorState<T> initialState = new MonitorState<>(monitor.getName());
         Instant now = Instant.now();
@@ -60,7 +60,7 @@ public class AlarmEngine {
         return initialState;
     }
 
-    public <T> AlarmMessage<T> evaluate(MonitorReading<T> value, AlarmEvaluator<T> evaluator) {
+    public <T> AlarmMessage<T> evaluate(TelemetryOut<T> value, AlarmEvaluator<T> evaluator) {
 
         MonitorState<T> monitorState = getState(value.name());
 
@@ -115,7 +115,7 @@ public class AlarmEngine {
         for (AlarmState<?> alarm : alarmStates.values()){
            if (alarm.getAlarmId().equals(alarmId)){
                 alarm.acknowledge();
-                this.ackQueue.submit(new AlarmAcknowledge(alarmId, Instant.now(), alarm.getName()));
+                this.ackQueue.submit(new AlarmAcknowledgeOut(alarmId, Instant.now(), alarm.getName()));
                 
                 return alarm.toMessage();
            }

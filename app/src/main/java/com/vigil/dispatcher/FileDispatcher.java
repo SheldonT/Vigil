@@ -9,10 +9,10 @@ import java.nio.file.StandardOpenOption;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 
-import com.vigil.alarm.AlarmAcknowledge;
+import com.vigil.alarm.AlarmAcknowledgeOut;
 import com.vigil.alarm.AlarmMessage;
 import com.vigil.config.ConfigValidator;
-import com.vigil.monitor.MonitorReading;
+import com.vigil.monitor.TelemetryOut;
 
 public class FileDispatcher extends Dispatcher{
 
@@ -56,18 +56,24 @@ public class FileDispatcher extends Dispatcher{
     }
 
     @Override
-    public void sendValue(MonitorReading<?> result){
+    public void sendValue(TelemetryOut<?> result){
         String telemetryString = "TELEMETRY => " + result.timestamp() + " - " + result.name() + " : " + result.value();
 
         this.writeLine(telemetryString);
     }
 
     @Override
-    public void sendAlarmAcknowledgement(AlarmAcknowledge acknowledgement){
+    public void sendAlarmAcknowledgement(AlarmAcknowledgeOut acknowledgement){
         String ackString = "ALARM ACK => " + acknowledgement.acknowledgedAt()+ " - " + acknowledgement.source() + " - " + acknowledgement.alarmId() + " - " + "ACK";
 
         this.writeLine(ackString);
     }
+
+    @Override
+    public void start(){}
+
+    @Override
+    public void stop(){}
 
     private void writeLine(String line){
         if (this.lineCount >= config.maxLineCount()){

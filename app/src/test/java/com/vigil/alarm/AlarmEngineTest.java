@@ -3,6 +3,7 @@ package com.vigil.alarm;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 
 import java.time.Instant;
 
@@ -11,7 +12,7 @@ import org.junit.jupiter.api.Test;
 import static org.junit.jupiter.api.Assertions.*;
 
 import com.vigil.monitor.Monitor;
-import com.vigil.monitor.MonitorReading;
+import com.vigil.monitor.TelemetryOut;
 
 class AlarmEngineTest {
 
@@ -19,19 +20,19 @@ class AlarmEngineTest {
      * A simple controllable Monitor stub — no SystemMetricsProvider needed.
      */
     private static class StubMonitor extends Monitor<Double> {
-        private MonitorReading<Double> value;
+        private TelemetryOut<Double> value;
         private final AlarmEvaluator<Double> evaluator;
 
-        StubMonitor(String name, MonitorReading<Double> initialValue, AlarmEvaluator<Double> evaluator) {
+        StubMonitor(String name, TelemetryOut<Double> initialValue, AlarmEvaluator<Double> evaluator) {
             super(name);
             this.value = initialValue;
             this.evaluator = evaluator;
         }
 
-        void setValue(MonitorReading<Double> v) { this.value = v; }
+        void setValue(TelemetryOut<Double> v) { this.value = v; }
 
         @Override
-        public MonitorReading<Double> read() { return this.value; }
+        public TelemetryOut<Double> read() { return this.value; }
 
         @Override
         public AlarmEvaluator<Double> getAlarmEvaluator() { return this.evaluator; }
@@ -85,7 +86,7 @@ class AlarmEngineTest {
     @Test
     void noEvent_whenValueStaysInOkZone() {
 
-        MonitorReading<Double> initialValue = new MonitorReading<Double>("CPU", 50.0, Instant.now());
+        TelemetryOut<Double> initialValue = new TelemetryOut<Double>("CPU", 50.0, Instant.now());
         StubMonitor monitor = new StubMonitor("CPU", initialValue, evaluator);
         AlarmEngine engine = engineWith(monitor);
 
@@ -98,12 +99,12 @@ class AlarmEngineTest {
 
     @Test
     void highWarningEvent_whenValueCrossesHighWarnThreshold() {
-        MonitorReading<Double> initialValue = new MonitorReading<Double>("CPU", 50.0, Instant.now());
+        TelemetryOut<Double> initialValue = new TelemetryOut<Double>("CPU", 50.0, Instant.now());
         StubMonitor monitor = new StubMonitor("CPU", initialValue, evaluator);
         AlarmEngine engine = engineWith(monitor);
 
 
-        MonitorReading<Double> testValue = new MonitorReading<Double>("CPU", 82.0, Instant.now());
+        TelemetryOut<Double> testValue = new TelemetryOut<Double>("CPU", 82.0, Instant.now());
 
         monitor.setValue(testValue);   // crosses HIGH_WARN (80)
         AlarmMessage<Double> event = evaluate(engine, monitor);
@@ -114,12 +115,12 @@ class AlarmEngineTest {
 
     @Test
     void noEvent_whenValueStaysInHighWarningZone() {
-        MonitorReading<Double> initialValue = new MonitorReading<Double>("CPU", 82.0, Instant.now());
+        TelemetryOut<Double> initialValue = new TelemetryOut<Double>("CPU", 82.0, Instant.now());
         StubMonitor monitor = new StubMonitor("CPU", initialValue, evaluator);
         AlarmEngine engine = engineWith(monitor);
 
         evaluate(engine, monitor);           // consume the initial HIGH_WARNING event (if any)
-        MonitorReading<Double> testValue = new MonitorReading<Double>("CPU", 83.0, Instant.now());
+        TelemetryOut<Double> testValue = new TelemetryOut<Double>("CPU", 83.0, Instant.now());
 
         monitor.setValue(testValue);      // still in HIGH_WARNING zone
         AlarmMessage<Double> event = evaluate(engine, monitor);
@@ -131,13 +132,13 @@ class AlarmEngineTest {
 
     @Test
     void highAlarmEvent_whenValueCrossesHighAlarmThreshold() {
-        MonitorReading<Double> initialValue = new MonitorReading<Double>("CPU", 82.0, Instant.now());
+        TelemetryOut<Double> initialValue = new TelemetryOut<Double>("CPU", 82.0, Instant.now());
         StubMonitor monitor = new StubMonitor("CPU", initialValue, evaluator);
         AlarmEngine engine = engineWith(monitor);
 
         evaluate(engine, monitor);   // prime engine to HIGH_WARNING state
 
-        MonitorReading<Double> testValue = new MonitorReading<Double>("CPU", 92.0, Instant.now());
+        TelemetryOut<Double> testValue = new TelemetryOut<Double>("CPU", 92.0, Instant.now());
 
         monitor.setValue(testValue);   // crosses HIGH_ALARM (90)
         AlarmMessage<Double> event = evaluate(engine, monitor);
@@ -150,11 +151,11 @@ class AlarmEngineTest {
 
     @Test
     void lowWarningEvent_whenValueCrossesLowWarnThreshold() {
-        MonitorReading<Double> initialValue = new MonitorReading<Double>("CPU", 50.0, Instant.now());
+        TelemetryOut<Double> initialValue = new TelemetryOut<Double>("CPU", 50.0, Instant.now());
         StubMonitor monitor = new StubMonitor("CPU", initialValue, evaluator);
         AlarmEngine engine = engineWith(monitor);
 
-        MonitorReading<Double> testValue = new MonitorReading<Double>("CPU", 18.0, Instant.now());
+        TelemetryOut<Double> testValue = new TelemetryOut<Double>("CPU", 18.0, Instant.now());
 
         monitor.setValue(testValue);   // crosses LOW_WARN (20)
         AlarmMessage<Double> event = evaluate(engine, monitor);
@@ -167,12 +168,12 @@ class AlarmEngineTest {
 
     @Test
     void lowAlarmEvent_whenValueCrossesLowAlarmThreshold() {
-        MonitorReading<Double> initialValue = new MonitorReading<Double>("CPU", 18.0, Instant.now());
+        TelemetryOut<Double> initialValue = new TelemetryOut<Double>("CPU", 18.0, Instant.now());
         StubMonitor monitor = new StubMonitor("CPU", initialValue, evaluator);
         AlarmEngine engine = engineWith(monitor);
         evaluate(engine, monitor);   // prime engine to LOW_WARNING state
 
-        MonitorReading<Double> testValue = new MonitorReading<Double>("CPU", 8.0, Instant.now());
+        TelemetryOut<Double> testValue = new TelemetryOut<Double>("CPU", 8.0, Instant.now());
 
         monitor.setValue(testValue);   // crosses LOW_ALARM (10)
         AlarmMessage<Double> event = evaluate(engine, monitor);
@@ -185,12 +186,12 @@ class AlarmEngineTest {
 
     @Test
     void okEvent_whenHighWarningValueClearsToOk() {
-        MonitorReading<Double> initialValue = new MonitorReading<Double>("CPU", 82.0, Instant.now());
+        TelemetryOut<Double> initialValue = new TelemetryOut<Double>("CPU", 82.0, Instant.now());
         StubMonitor monitor = new StubMonitor("CPU", initialValue, evaluator);
         AlarmEngine engine = engineWith(monitor);
         evaluate(engine, monitor);   // prime to HIGH_WARNING
 
-        MonitorReading<Double> testValue = new MonitorReading<Double>("CPU", 50.0, Instant.now());
+        TelemetryOut<Double> testValue = new TelemetryOut<Double>("CPU", 50.0, Instant.now());
 
 
         monitor.setValue(testValue);   // drops below HIGH_WARN_CLEAR (75) → OK
@@ -204,8 +205,44 @@ class AlarmEngineTest {
 
     @Test
     void constructor_initializesEngineWithMonitorEvaluator() {
-        MonitorReading<Double> initialValue = new MonitorReading<Double>("CPU", 50.0, Instant.now());
+        TelemetryOut<Double> initialValue = new TelemetryOut<Double>("CPU", 50.0, Instant.now());
         StubMonitor monitor = new StubMonitor("CPU", initialValue, evaluator);
         assertDoesNotThrow(() -> new AlarmEngine(List.of(monitor)));
+    }
+
+    @Test
+    void acknowledgeAlarm_enqueuesAcknowledgementForActiveAlarm() {
+        TelemetryOut<Double> initialValue = new TelemetryOut<Double>("CPU", 50.0, Instant.now());
+        StubMonitor monitor = new StubMonitor("CPU", initialValue, evaluator);
+        AlarmEngine engine = engineWith(monitor);
+
+        TelemetryOut<Double> testValue = new TelemetryOut<Double>("CPU", 8.0, Instant.now());
+        monitor.setValue(testValue);
+        AlarmMessage<Double> event = evaluate(engine, monitor);
+
+        assertNotNull(event, "Expected an active alarm before acknowledging");
+
+        AlarmMessage<?> acknowledged = engine.acknowledgeAlarm(event.alarmId());
+        AlarmAcknowledgeOut outbound = engine.getAckQueue().poll();
+
+        assertNotNull(acknowledged, "Expected acknowledgement to return alarm state");
+        assertTrue(acknowledged.acknowledged(), "Alarm should be marked acknowledged");
+        assertNotNull(acknowledged.acknowledgedAt(), "Alarm should have acknowledged timestamp");
+        assertNotNull(outbound, "Expected outbound ALARM_ACKNOWLEDGED event");
+        assertEquals(event.alarmId(), outbound.alarmId());
+        assertEquals("CPU", outbound.source());
+    }
+
+    @Test
+    void acknowledgeAlarm_returnsNullForUnknownAlarmId() {
+        TelemetryOut<Double> initialValue = new TelemetryOut<Double>("CPU", 50.0, Instant.now());
+        StubMonitor monitor = new StubMonitor("CPU", initialValue, evaluator);
+        AlarmEngine engine = engineWith(monitor);
+
+        AlarmMessage<?> acknowledged = engine.acknowledgeAlarm(UUID.randomUUID());
+        AlarmAcknowledgeOut outbound = engine.getAckQueue().poll();
+
+        assertNull(acknowledged, "Unknown alarm id should not acknowledge anything");
+        assertNull(outbound, "Unknown alarm id should not enqueue outbound acknowledgement");
     }
 }

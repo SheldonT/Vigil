@@ -1,0 +1,22 @@
+services:
+  websocket-server:
+    image: python:3.12-slim
+    working_dir: /app
+    volumes:
+      - ./websocket_svr.py:/app/websocket_svr.py
+    command: >-
+      sh -c "pip install websockets -q && python -u websocket_svr.py"
+    ports:
+      - "8080:8080"
+
+  websocket-subscriber:
+    image: python:3.12-slim
+    depends_on:
+      - websocket-server
+    working_dir: /app
+    volumes:
+      - ./websocket_sub.py:/app/websocket_sub.py
+    environment:
+      - WEBSOCKET_URL=ws://websocket-server:8080
+    command: >-
+      sh -c "pip install websocket-client -q && python -u websocket_sub.py"

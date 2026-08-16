@@ -21,7 +21,7 @@ public abstract class Monitor<T> {
         return 0.0;
     }
 
-    public abstract MonitorReading<T> read();
+    public abstract TelemetryOut<T> read();
 
     public abstract AlarmEvaluator<T> getAlarmEvaluator();
 

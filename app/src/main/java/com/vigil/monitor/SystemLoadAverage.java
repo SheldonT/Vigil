@@ -41,8 +41,8 @@ public record Configuration(String type, boolean enabled, double telemetryDeadba
     }
 
     @Override
-    public MonitorReading<Double> read(){
-        return new MonitorReading<Double>(
+    public TelemetryOut<Double> read(){
+        return new TelemetryOut<Double>(
             this.getName(),
             metrics.systemLoadAverage(),
             Instant.now()

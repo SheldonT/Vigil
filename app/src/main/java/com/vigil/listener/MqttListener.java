@@ -8,11 +8,12 @@ import java.util.logging.Logger;
 import com.hivemq.client.mqtt.MqttClient;
 import com.hivemq.client.mqtt.mqtt5.message.publish.Mqtt5Publish;
 import com.hivemq.client.mqtt.mqtt5.Mqtt5AsyncClient;
-
+import com.vigil.alarm.AlarmAcknowledgeIn;
 import com.vigil.alarm.AlarmMessage;
+import com.vigil.app.VigilMessage;
 import com.vigil.config.ConfigValidator;
 
-public class MqttListener implements Listener, AlarmAcknowledger {
+public class MqttListener extends Listener implements AlarmAcknowledger {
 
     private static final Logger logger = Logger.getLogger(MqttListener.class.getName());
 
@@ -42,9 +43,10 @@ public class MqttListener implements Listener, AlarmAcknowledger {
     private final String topic;
 
     public MqttListener(Function<UUID, AlarmMessage<?>> callback, Configuration config){
+        super();
         this.ackCallback = callback;
         this.client = createClient(config);
-        this.topic = config.topic() + "/ack";
+        this.topic = config.topic();
     }
 
     private Mqtt5AsyncClient createClient(Configuration config){
@@ -57,51 +59,80 @@ public class MqttListener implements Listener, AlarmAcknowledger {
         .buildAsync();
     }
 
-    private void handleMessage(Mqtt5Publish publish) {
+    private void publishMessage(Mqtt5Publish publish) {
         try{
             String message = StandardCharsets.UTF_8
                 .decode(publish.getPayload().orElseThrow())
                 .toString();
-            UUID alarmId = UUID.fromString(message);
 
-            AlarmMessage<?> ackMessage = this.acknowledgeAlarm(alarmId);
-
-            logger.info("Evaluating alarm " + alarmId + " : " + ackMessage);
-            if (ackMessage == null){
-                logger.info("Alarm with id " + alarmId + " doesn't exist or has cleared.");
-            }
-            else {
-                logger.info("Alarm " + alarmId + " acknowledged at " + ackMessage.acknowledgedAt());
-            }
+            this.deserialize(message).ifPresent(this::handleMessage);
             
         } catch (Exception e) {
-            logger.warning("Invalid UUID: " + e);
+            logger.warning("Unsupported message type received by MQTT Listener: " + e);
+        }
+    }
+
+    @Override
+    protected void handleMessage(VigilMessage msg) {
+
+        switch (msg.type()) {
+
+            case ACKNOWLEDGE_ALARM -> {
+                AlarmAcknowledgeIn acknowledgement =
+                    (AlarmAcknowledgeIn) msg;
+
+                acknowledgeAlarm(acknowledgement.alarmId());
+            }
+
+            default ->
+                logger.warning(
+                    "Unsupported message type: " + msg.type()
+                );
         }
     }
 
     @Override
     public void start(){
-        client.connectWith()
-                .send()
-                .whenComplete((connAck, throwable) -> {
-
-                    if (throwable != null) {
-                        logger.severe("MQTT connection failed: " + throwable.getMessage());
-                        return;
-                    }
-
-                    logger.info("Connected to MQTT broker and subscribing to topic: " + this.topic);
-                    client.subscribeWith()
-                            .topicFilter(this.topic)
-                            .callback(publish -> {
-                                this.handleMessage(publish);
-                            })
-                            .send();
-                });
+        this.connect();
     }
 
     @Override
-    public void stop(){}
+    public void stop(){
+        this.disconnect();
+    }
+
+    private void connect(){
+        client.connectWith()
+            .send()
+            .whenComplete((connAck, throwable) -> {
+
+                if (throwable != null) {
+                    logger.severe("MQTT connection failed: " + throwable.getMessage());
+                    return;
+                }
+
+                logger.info("Connected to MQTT broker and subscribing to topic: " + this.topic);
+                client.subscribeWith()
+                        .topicFilter(this.topic)
+                        .callback(publish -> {
+                            this.publishMessage(publish);
+                        })
+                        .send();
+            });
+    }
+
+    private void disconnect() {
+        this.client.disconnect()
+        .whenComplete((result, throwable) -> {
+            if (throwable != null) {
+                logger.warning(
+                    "MQTT disconnect failed: " + throwable.getMessage()
+                );
+            } else {
+                logger.info("Disconnected from MQTT broker");
+            }
+        });
+    }
 
     @Override
     public AlarmMessage<?> acknowledgeAlarm (UUID alarmId){

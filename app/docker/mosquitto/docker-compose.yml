@@ -5,3 +5,15 @@ services:
       - "1883:1883"
     volumes:
       - ./mosquitto.conf:/mosquitto/config/mosquitto.conf
+
+  mqtt-subscriber:
+    image: python:3-slim
+    depends_on:
+      - mosquitto
+    volumes:
+      - ./mqtt_sub.py:/app/mqtt_sub.py
+    working_dir: /app
+    command: >-
+      sh -c "pip install paho-mqtt -q && python -u mqtt_sub.py"
+    environment:
+      - BROKER=mosquitto

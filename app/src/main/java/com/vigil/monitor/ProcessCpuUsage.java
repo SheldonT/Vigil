@@ -41,8 +41,8 @@ public class ProcessCpuUsage extends Monitor<Double>{
     }
 
     @Override
-    public MonitorReading<Double> read(){
-        return new MonitorReading<Double>(
+    public TelemetryOut<Double> read(){
+        return new TelemetryOut<Double>(
             this.getName(),
             metrics.processCpuUsage(),
             Instant.now()

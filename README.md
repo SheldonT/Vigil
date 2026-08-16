@@ -166,9 +166,29 @@ case "Console":
 
 ## Running tests
 
+Run the full test suite:
+
 ```bash
-./gradlew test
+./gradlew clean test
 ```
+
+Run one test class (useful while iterating):
+
+```bash
+./gradlew test --tests com.vigil.alarm.AlarmEngineTest
+```
+
+Generate the deployable JAR only after tests pass:
+
+```bash
+./gradlew clean test :app:shadowJar
+```
+
+### Pre-deploy checklist
+
+1. `./gradlew clean test` exits with code `0`.
+2. No failed tests in the report at `app/build/reports/tests/test/index.html`.
+3. Build the artifact with `./gradlew :app:shadowJar` (or use the combined command above).
 
 ## License
 

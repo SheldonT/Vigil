@@ -26,6 +26,10 @@ dependencies {
     implementation(libs.guava)
     implementation("org.tomlj:tomlj:1.1.1")
     implementation("com.hivemq:hivemq-mqtt-client:1.3.3")
+    implementation("org.java-websocket:Java-WebSocket:1.6.0")
+    implementation("com.fasterxml.jackson.core:jackson-databind:2.20.0")
+    implementation("com.fasterxml.jackson.datatype:jackson-datatype-jsr310:2.20.0")
+    
 }
 
 // Apply a specific Java toolchain to ease working on different environments.

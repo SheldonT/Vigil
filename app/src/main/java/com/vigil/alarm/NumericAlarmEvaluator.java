@@ -1,6 +1,6 @@
 package com.vigil.alarm;
 
-import com.vigil.monitor.MonitorReading;
+import com.vigil.monitor.TelemetryOut;
 
 import java.time.Instant;
 import java.time.Duration;
@@ -161,7 +161,7 @@ public class NumericAlarmEvaluator extends AlarmEvaluator<Double> {
         }
     }
     
-    public Status evaluate(MonitorReading<Double> value, MonitorState<Double> currentState){
+    public Status evaluate(TelemetryOut<Double> value, MonitorState<Double> currentState){
 
         Instant now = Instant.now();
 

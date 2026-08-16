@@ -3,7 +3,10 @@ package com.vigil.alarm;
 import java.time.Instant;
 import java.util.UUID;
 
-public record AlarmMessage<T>(
+import com.vigil.app.VigilMessage;
+import com.vigil.app.MessageType;
+
+public record AlarmMessage<T> (
         UUID alarmId,
         String name,
         T value,
@@ -12,4 +15,10 @@ public record AlarmMessage<T>(
         Instant activatedAt,
         Instant acknowledgedAt,
         Instant lastUpdated
-) {}
+) implements VigilMessage {
+
+        @Override
+        public MessageType type(){
+                return MessageType.ALARM;
+        }
+}

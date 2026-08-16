@@ -5,15 +5,15 @@ import java.util.concurrent.LinkedBlockingQueue;
 
 public class AlarmAcknowledgeQueue implements AlarmEventSink {
 
-    private final BlockingQueue<AlarmAcknowledge> queue =
+    private final BlockingQueue<AlarmAcknowledgeOut> queue =
         new LinkedBlockingQueue<>();
 
     @Override
-    public void submit(AlarmAcknowledge acknowledgement) {
+    public void submit(AlarmAcknowledgeOut acknowledgement) {
         queue.offer(acknowledgement);
     }
 
-    public AlarmAcknowledge poll() {
+    public AlarmAcknowledgeOut poll() {
         return queue.poll();
     }
 }
