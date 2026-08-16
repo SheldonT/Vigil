@@ -11,6 +11,9 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import static org.junit.jupiter.api.Assertions.*;
 
+import com.vigil.message.AlarmAcknowledgeOut;
+import com.vigil.message.AlarmAcknowledgeFail;
+import com.vigil.message.VigilMessage;
 import com.vigil.monitor.Monitor;
 import com.vigil.monitor.TelemetryOut;
 
@@ -222,27 +225,35 @@ class AlarmEngineTest {
 
         assertNotNull(event, "Expected an active alarm before acknowledging");
 
-        AlarmMessage<?> acknowledged = engine.acknowledgeAlarm(event.alarmId());
-        AlarmAcknowledgeOut outbound = engine.getAckQueue().poll();
+        VigilMessage acknowledged = engine.acknowledgeAlarm(event.alarmId());
+        VigilMessage outbound = engine.getAckQueue().poll();
 
         assertNotNull(acknowledged, "Expected acknowledgement to return alarm state");
-        assertTrue(acknowledged.acknowledged(), "Alarm should be marked acknowledged");
-        assertNotNull(acknowledged.acknowledgedAt(), "Alarm should have acknowledged timestamp");
+        assertInstanceOf(AlarmMessage.class, acknowledged, "Expected acknowledgement to return AlarmMessage");
+        AlarmMessage<?> acknowledgedAlarm = (AlarmMessage<?>) acknowledged;
+        assertTrue(acknowledgedAlarm.acknowledged(), "Alarm should be marked acknowledged");
+        assertNotNull(acknowledgedAlarm.acknowledgedAt(), "Alarm should have acknowledged timestamp");
         assertNotNull(outbound, "Expected outbound ALARM_ACKNOWLEDGED event");
-        assertEquals(event.alarmId(), outbound.alarmId());
-        assertEquals("CPU", outbound.source());
+        assertInstanceOf(AlarmAcknowledgeOut.class, outbound, "Expected outbound acknowledgement event");
+        AlarmAcknowledgeOut outboundAck = (AlarmAcknowledgeOut) outbound;
+        assertEquals(event.alarmId(), outboundAck.alarmId());
+        assertEquals("CPU", outboundAck.source());
     }
 
     @Test
-    void acknowledgeAlarm_returnsNullForUnknownAlarmId() {
+    void acknowledgeAlarm_returnsFailureMessageForUnknownAlarmId() {
         TelemetryOut<Double> initialValue = new TelemetryOut<Double>("CPU", 50.0, Instant.now());
         StubMonitor monitor = new StubMonitor("CPU", initialValue, evaluator);
         AlarmEngine engine = engineWith(monitor);
 
-        AlarmMessage<?> acknowledged = engine.acknowledgeAlarm(UUID.randomUUID());
-        AlarmAcknowledgeOut outbound = engine.getAckQueue().poll();
+        UUID unknownAlarmId = UUID.randomUUID();
+        VigilMessage acknowledged = engine.acknowledgeAlarm(unknownAlarmId);
+        AlarmAcknowledgeOut outboundAck = engine.getAckQueue().poll();
+        AlarmAcknowledgeFail outboundFailure = engine.pollAcknowledgeFail();
 
-        assertNull(acknowledged, "Unknown alarm id should not acknowledge anything");
-        assertNull(outbound, "Unknown alarm id should not enqueue outbound acknowledgement");
+        assertInstanceOf(AlarmAcknowledgeFail.class, acknowledged, "Unknown alarm id should return failure message");
+        assertNull(outboundAck, "Unknown alarm id should not enqueue success acknowledgement");
+        assertNotNull(outboundFailure, "Unknown alarm id should enqueue failure event");
+        assertEquals(unknownAlarmId, outboundFailure.alarmId());
     }
 }

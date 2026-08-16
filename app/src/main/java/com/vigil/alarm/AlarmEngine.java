@@ -6,7 +6,11 @@ import java.util.List;
 import java.util.Map;
 import java.util.Queue;
 import java.time.Instant;
+import java.util.concurrent.ConcurrentLinkedQueue;
 
+import com.vigil.message.AlarmAcknowledgeOut;
+import com.vigil.message.AlarmAcknowledgeFail;
+import com.vigil.message.VigilMessage;
 import com.vigil.monitor.Monitor;
 import com.vigil.monitor.TelemetryOut;
 import java.util.UUID;
@@ -17,6 +21,7 @@ public class AlarmEngine {
     private final Map<String, MonitorState<?>> monitorStates = new HashMap<>();
     private final Map<String, AlarmState<?>> alarmStates = new HashMap<>();
     private final Queue<AlarmMessage<?>> startupAlarms = new ArrayDeque<>();
+    private final Queue<AlarmAcknowledgeFail> ackFailQueue = new ConcurrentLinkedQueue<>();
 
     private AlarmAcknowledgeQueue ackQueue = new AlarmAcknowledgeQueue();
     
@@ -110,7 +115,7 @@ public class AlarmEngine {
         return current;
     }
 
-    public AlarmMessage<?> acknowledgeAlarm(UUID alarmId) {
+    public VigilMessage acknowledgeAlarm(UUID alarmId) {
 
         for (AlarmState<?> alarm : alarmStates.values()){
            if (alarm.getAlarmId().equals(alarmId)){
@@ -121,7 +126,12 @@ public class AlarmEngine {
            }
         }
 
-        return null;
+                AlarmAcknowledgeFail failure = new AlarmAcknowledgeFail(
+                        alarmId,
+                        "Alarm doesn't exist or already acknowledged"
+                );
+                this.ackFailQueue.offer(failure);
+                return failure;
     }
 
     public AlarmMessage<?> pollStartupAlarm() {
@@ -130,6 +140,10 @@ public class AlarmEngine {
 
     public AlarmAcknowledgeQueue getAckQueue(){
         return this.ackQueue;
+    }
+
+    public AlarmAcknowledgeFail pollAcknowledgeFail() {
+        return this.ackFailQueue.poll();
     }
 
     @SuppressWarnings("unchecked")

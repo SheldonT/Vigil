@@ -7,10 +7,9 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
-
-import com.vigil.app.VigilMessage;
-import com.vigil.app.MessageType;
-import com.vigil.alarm.AlarmAcknowledgeIn;
+import com.vigil.message.AlarmAcknowledgeIn;
+import com.vigil.message.MessageType;
+import com.vigil.message.VigilMessage;
 
 public abstract class Listener {
 

@@ -1,10 +1,7 @@
-package com.vigil.alarm;
+package com.vigil.message;
 
 import java.time.Instant;
 import java.util.UUID;
-
-import com.vigil.app.MessageType;
-import com.vigil.app.VigilMessage;
 
 public record AlarmAcknowledgeOut(
     UUID alarmId,

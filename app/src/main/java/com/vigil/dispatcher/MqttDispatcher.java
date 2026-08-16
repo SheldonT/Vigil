@@ -5,9 +5,10 @@ import java.util.Map;
 
 import com.hivemq.client.mqtt.MqttClient;
 import com.hivemq.client.mqtt.mqtt5.Mqtt5AsyncClient;
-import com.vigil.alarm.AlarmAcknowledgeOut;
 import com.vigil.alarm.AlarmMessage;
 import com.vigil.config.ConfigValidator;
+import com.vigil.message.AlarmAcknowledgeFail;
+import com.vigil.message.AlarmAcknowledgeOut;
 import com.vigil.monitor.TelemetryOut;
 
 public class MqttDispatcher extends Dispatcher{
@@ -124,6 +125,16 @@ public class MqttDispatcher extends Dispatcher{
         String payload = this.serialize(acknowledgement);
         //String payload = acknowledgement.acknowledgedAt()+ "," + acknowledgement.alarmId() + "," + acknowledgement.source() + "," + "ACK";
         //String topic = this.config.topic() + "/acknowledge";
+
+        this.client.publishWith()
+        .topic(this.config.topic())
+        .payload(payload.getBytes())
+        .send();
+    }
+
+    @Override
+    public void sendAlarmAcknowledgeFail(AlarmAcknowledgeFail failure) {
+        String payload = this.serialize(failure);
 
         this.client.publishWith()
         .topic(this.config.topic())

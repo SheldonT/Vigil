@@ -8,10 +8,9 @@ import java.util.logging.Logger;
 import com.hivemq.client.mqtt.MqttClient;
 import com.hivemq.client.mqtt.mqtt5.message.publish.Mqtt5Publish;
 import com.hivemq.client.mqtt.mqtt5.Mqtt5AsyncClient;
-import com.vigil.alarm.AlarmAcknowledgeIn;
-import com.vigil.alarm.AlarmMessage;
-import com.vigil.app.VigilMessage;
 import com.vigil.config.ConfigValidator;
+import com.vigil.message.AlarmAcknowledgeIn;
+import com.vigil.message.VigilMessage;
 
 public class MqttListener extends Listener implements AlarmAcknowledger {
 
@@ -38,11 +37,11 @@ public class MqttListener extends Listener implements AlarmAcknowledger {
         }
     }
 
-    private final Function<UUID, AlarmMessage<?>> ackCallback;
+    private final Function<UUID, VigilMessage> ackCallback;
     private final Mqtt5AsyncClient client;
     private final String topic;
 
-    public MqttListener(Function<UUID, AlarmMessage<?>> callback, Configuration config){
+    public MqttListener(Function<UUID, VigilMessage> callback, Configuration config){
         super();
         this.ackCallback = callback;
         this.client = createClient(config);
@@ -81,7 +80,7 @@ public class MqttListener extends Listener implements AlarmAcknowledger {
                 AlarmAcknowledgeIn acknowledgement =
                     (AlarmAcknowledgeIn) msg;
 
-                acknowledgeAlarm(acknowledgement.alarmId());
+                this.acknowledgeAlarm(acknowledgement.alarmId());
             }
 
             default ->
@@ -135,7 +134,7 @@ public class MqttListener extends Listener implements AlarmAcknowledger {
     }
 
     @Override
-    public AlarmMessage<?> acknowledgeAlarm (UUID alarmId){
+    public VigilMessage acknowledgeAlarm (UUID alarmId){
         return ackCallback.apply(alarmId);
     }
 }

@@ -61,7 +61,7 @@ The WebSocket listener connects to the relay server as a **client**. Any message
 
 ## Dispatchers
 
-Dispatchers send `ALARM`, `TELEMETRY`, and `ALARM_ACKNOWLEDGED` events outbound to configured destinations.
+Dispatchers send `ALARM`, `TELEMETRY`, `ALARM_ACKNOWLEDGED`, and `ALARM_ACKNOWLEDGE_FAILED` events outbound to configured destinations.
 
 ### Built-in dispatchers
 
@@ -85,6 +85,7 @@ Output format example:
 STATUS    => 2026-08-15T17:41:08Z - CPU - c6d1919b-... HIGH_ALARM : 92.4
 TELEMETRY => 2026-08-15T17:41:09Z - CPU : 14.3
 ALARM ACK => 2026-08-15T17:44:10Z - CPU - c6d1919b-... - ACK
+ALARM ACK FAIL => 11111111-2222-3333-4444-555555555555 - Alarm doesn't exist or already acknowledged
 ```
 
 ### MQTT dispatcher config
@@ -97,7 +98,7 @@ port  = 1883
 topic = "client/vigil"
 ```
 
-Publishes JSON to the configured topic. All three message types (`ALARM`, `TELEMETRY`, `ALARM_ACKNOWLEDGED`) are published to the same topic.
+Publishes JSON to the configured topic. All message types (`ALARM`, `TELEMETRY`, `ALARM_ACKNOWLEDGED`, `ALARM_ACKNOWLEDGE_FAILED`) are published to the same topic.
 
 ### WebSocket dispatcher config
 
@@ -108,3 +109,9 @@ host = "ws://localhost:8080"
 ```
 
 Connects to the relay as a client and sends JSON. The relay is responsible for broadcasting to subscribed clients.
+
+### Acknowledgement responses
+
+- A successful acknowledgement emits `ALARM_ACKNOWLEDGED`.
+- A rejected acknowledgement emits `ALARM_ACKNOWLEDGE_FAILED`.
+- Both responses are dispatched through the same acknowledgement pathway to all configured dispatchers.

@@ -9,9 +9,10 @@ import java.nio.file.StandardOpenOption;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 
-import com.vigil.alarm.AlarmAcknowledgeOut;
 import com.vigil.alarm.AlarmMessage;
 import com.vigil.config.ConfigValidator;
+import com.vigil.message.AlarmAcknowledgeFail;
+import com.vigil.message.AlarmAcknowledgeOut;
 import com.vigil.monitor.TelemetryOut;
 
 public class FileDispatcher extends Dispatcher{
@@ -67,6 +68,12 @@ public class FileDispatcher extends Dispatcher{
         String ackString = "ALARM ACK => " + acknowledgement.acknowledgedAt()+ " - " + acknowledgement.source() + " - " + acknowledgement.alarmId() + " - " + "ACK";
 
         this.writeLine(ackString);
+    }
+
+    @Override
+    public void sendAlarmAcknowledgeFail(AlarmAcknowledgeFail failure) {
+        String failString = "ALARM ACK FAIL => " + failure.alarmId() + " - " + failure.reason();
+        this.writeLine(failString);
     }
 
     @Override

@@ -4,17 +4,16 @@ import java.util.List;
 import java.util.logging.Logger;
 
 import com.vigil.monitor.Monitor;
-import com.vigil.alarm.AlarmAcknowledgeOut;
 import com.vigil.alarm.AlarmEngine;
 import com.vigil.dispatcher.Dispatcher;
 import com.vigil.monitor.TelemetryOut;
 import com.vigil.telemetry.TelemetryTracker;
 import com.vigil.alarm.AlarmMessage;
 import com.vigil.listener.Listener;
+import com.vigil.message.AlarmAcknowledgeFail;
+import com.vigil.message.AlarmAcknowledgeOut;
 
 public class VigilLoop {
-    
-    private boolean runLoop = true;
 
     private static final Logger logger = Logger.getLogger(VigilLoop.class.getName());
 
@@ -24,6 +23,9 @@ public class VigilLoop {
     private final List<Monitor<?>> monitors;
     private final List<Listener> listeners;
     private final TelemetryTracker telemetry;
+    
+    private volatile boolean runLoop = true;
+    private Thread acknowledgementThread;
 
 
     public VigilLoop(AppConfig appConfig, List<Monitor<?>> monitors, List<Dispatcher> dispatchers, List<Listener> listeners, AlarmEngine alarmEngine){
@@ -59,6 +61,8 @@ public class VigilLoop {
 
         this.dispatchStartupAlarms();
 
+        this.startAcknowledgementThread();
+
         while(runLoop){
             for (Monitor<?> m : this.monitors){
                 try{
@@ -68,7 +72,7 @@ public class VigilLoop {
                 }
             }
 
-            this.processAlarmAcknowledge();
+            this.processAlarmAcknowledgeFailures();
 
             this.sleep(appConfig.getPollingIntervalMs());
         }
@@ -94,19 +98,47 @@ public class VigilLoop {
         }
     }
 
-    private void processAlarmAcknowledge(){
+    private void startAcknowledgementThread() {
 
-        while (true){
+        this.acknowledgementThread = new Thread(() -> {
 
-            AlarmAcknowledgeOut acknowledgement = this.alarmEngine.getAckQueue().poll();
-            
-            if (acknowledgement == null) {
+            while (runLoop) {
+
+                try {
+                    AlarmAcknowledgeOut acknowledgement =
+                        this.alarmEngine.getAckQueue().take();
+
+                    for (Dispatcher dispatcher : dispatchers) {
+                        dispatcher.sendAlarmAcknowledgement(acknowledgement);
+                    }
+
+                } catch (InterruptedException e) {
+
+                    Thread.currentThread().interrupt();
+                    break;
+
+                } catch (Exception e) {
+
+                    logger.severe(
+                        "Error processing alarm acknowledgement: " + e
+                    );
+                }
+            }
+
+        }, "vigil-acknowledgement");
+
+        this.acknowledgementThread.start();
+    }
+
+    private void processAlarmAcknowledgeFailures() {
+        while (true) {
+            AlarmAcknowledgeFail failure = this.alarmEngine.pollAcknowledgeFail();
+            if (failure == null) {
                 break;
             }
 
-            for (Dispatcher dispatcher : dispatchers) {
-                
-                dispatcher.sendAlarmAcknowledgement(acknowledgement);
+            for (Dispatcher dispatcher : this.dispatchers) {
+                dispatcher.sendAlarmAcknowledgeFail(failure);
             }
         }
     }
@@ -114,5 +146,18 @@ public class VigilLoop {
     public void stop(){
         logger.info("Stopping Vigil.");
         this.runLoop = false;
+
+                // Wake the acknowledgement thread if it is blocked in take()
+        if (acknowledgementThread != null) {
+            acknowledgementThread.interrupt();
+        }
+
+        for (Listener l : this.listeners){
+            l.stop();
+        }
+
+        for (Dispatcher d : this.dispatchers){
+            d.stop();
+        }
     }
 }

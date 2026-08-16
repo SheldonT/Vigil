@@ -3,6 +3,8 @@ package com.vigil.alarm;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
 
+import com.vigil.message.AlarmAcknowledgeOut;
+
 public class AlarmAcknowledgeQueue implements AlarmEventSink {
 
     private final BlockingQueue<AlarmAcknowledgeOut> queue =
@@ -15,5 +17,9 @@ public class AlarmAcknowledgeQueue implements AlarmEventSink {
 
     public AlarmAcknowledgeOut poll() {
         return queue.poll();
+    }
+
+    public AlarmAcknowledgeOut take() throws InterruptedException {
+        return queue.take();
     }
 }

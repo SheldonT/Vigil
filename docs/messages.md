@@ -10,6 +10,7 @@ All Vigil messages are JSON objects with a `"type"` field that identifies the me
 | `TELEMETRY`         | Vigil → clients  | A monitor reading that crossed the telemetry deadband        |
 | `ACKNOWLEDGE_ALARM` | client → Vigil   | A client requests acknowledgement of an active alarm         |
 | `ALARM_ACKNOWLEDGED`| Vigil → clients  | Vigil confirms an alarm was acknowledged                     |
+| `ALARM_ACKNOWLEDGE_FAILED`| Vigil → clients | Vigil rejected an acknowledge request                     |
 
 ---
 
@@ -71,7 +72,7 @@ To acknowledge an active alarm, send an `ACKNOWLEDGE_ALARM` message to any confi
 ```
 
 - `alarmId` must match an alarm that is still in an active (non-OK) state.
-- Acknowledging an alarm that has already cleared returns no response — the alarm is gone.
+- Acknowledging an alarm that has already cleared (or never existed) returns an `ALARM_ACKNOWLEDGE_FAILED` response.
 - The `alarmId` is provided in every outgoing `ALARM` message.
 
 ---
@@ -95,7 +96,28 @@ After a successful acknowledgement, Vigil dispatches this message to all configu
 | `acknowledgedAt` | Timestamp when Vigil processed the acknowledgement    |
 | `source`         | Monitor name the alarm belonged to                    |
 
-This message is dispatched to **all** configured dispatchers, so it will appear on MQTT, WebSocket, and the file output simultaneously.
+This message is dispatched to all configured dispatchers, so it appears on MQTT, WebSocket, and file output.
+
+---
+
+## ALARM_ACKNOWLEDGE_FAILED
+
+If an acknowledgement cannot be applied (for example, stale or unknown `alarmId`), Vigil dispatches:
+
+```json
+{
+  "alarmId": "11111111-2222-3333-4444-555555555555",
+  "reason": "Alarm doesn't exist or already acknowledged",
+  "type": "ALARM_ACKNOWLEDGE_FAILED"
+}
+```
+
+| Field      | Description                                                |
+|------------|------------------------------------------------------------|
+| `alarmId`  | UUID from the request                                      |
+| `reason`   | Human-readable failure explanation                         |
+
+This message is also dispatched to all configured dispatchers.
 
 ---
 
@@ -107,9 +129,10 @@ client                  WebSocket/MQTT relay         Vigil listener        Alarm
   |-- ACKNOWLEDGE_ALARM ------>|                           |                     |                     |
   |                            |-- broadcast ------------->|                     |                     |
   |                            |                           |-- acknowledgeAlarm->|                     |
-  |                            |                           |                     |-- enqueue ack ------>|
+  |                            |                           |                     |-- enqueue success -->|
   |                            |                           |                     |                     |
-  |                            |<-- ALARM_ACKNOWLEDGED (dispatched to all) -------------------<--------|
+  |                            |<-- ALARM_ACKNOWLEDGED (if success) ------------------<--------|
+  |                            |<-- ALARM_ACKNOWLEDGE_FAILED (if rejected) -----------<--------|
 ```
 
-Vigil polls its acknowledgement queue every `pollingIntervalMs` milliseconds, so the `ALARM_ACKNOWLEDGED` response appears within one poll cycle of the request being received.
+After Vigil processes an acknowledgement request, it emits either `ALARM_ACKNOWLEDGED` or `ALARM_ACKNOWLEDGE_FAILED`, typically within one poll cycle (`pollingIntervalMs`).

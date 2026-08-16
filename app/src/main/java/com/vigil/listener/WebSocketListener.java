@@ -6,10 +6,10 @@ import java.util.UUID;
 import java.util.function.Function;
 import java.util.logging.Logger;
 
-import com.vigil.alarm.AlarmAcknowledgeIn;
 import com.vigil.alarm.AlarmMessage;
-import com.vigil.app.VigilMessage;
 import com.vigil.config.ConfigValidator;
+import com.vigil.message.AlarmAcknowledgeIn;
+import com.vigil.message.VigilMessage;
 
 import org.java_websocket.client.WebSocketClient;
 import org.java_websocket.handshake.ServerHandshake;
@@ -38,11 +38,11 @@ public class WebSocketListener extends Listener implements AlarmAcknowledger{
     private static final Logger logger =
         Logger.getLogger(WebSocketListener.class.getName());
 
-    private final Function<UUID, AlarmMessage<?>> ackCallback;
+    private final Function<UUID, VigilMessage> ackCallback;
     private final WebSocketClient client;
 
     public WebSocketListener(
-        Function<UUID, AlarmMessage<?>> callback,
+        Function<UUID, VigilMessage> callback,
         Configuration config) {
 
         this.ackCallback = callback;
@@ -112,7 +112,7 @@ public class WebSocketListener extends Listener implements AlarmAcknowledger{
     }
 
     @Override
-    public AlarmMessage<?> acknowledgeAlarm(UUID alarmId){
+    public VigilMessage acknowledgeAlarm(UUID alarmId){
         return this.ackCallback.apply(alarmId);
     }
 

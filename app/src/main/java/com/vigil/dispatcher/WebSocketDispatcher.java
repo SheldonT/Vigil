@@ -5,9 +5,10 @@ import java.util.Map;
 import org.java_websocket.client.WebSocketClient;
 import org.java_websocket.handshake.ServerHandshake;
 
-import com.vigil.alarm.AlarmAcknowledgeOut;
 import com.vigil.alarm.AlarmMessage;
 import com.vigil.config.ConfigValidator;
+import com.vigil.message.AlarmAcknowledgeFail;
+import com.vigil.message.AlarmAcknowledgeOut;
 import com.vigil.monitor.TelemetryOut;
 
 public class WebSocketDispatcher extends Dispatcher{
@@ -94,6 +95,12 @@ public class WebSocketDispatcher extends Dispatcher{
     public void sendAlarmAcknowledgement(AlarmAcknowledgeOut acknowledgement){
         String payload = this.serialize(acknowledgement);
         System.out.println(payload);
+        this.client.send(payload);
+    }
+
+    @Override
+    public void sendAlarmAcknowledgeFail(AlarmAcknowledgeFail failure) {
+        String payload = this.serialize(failure);
         this.client.send(payload);
     }
 }

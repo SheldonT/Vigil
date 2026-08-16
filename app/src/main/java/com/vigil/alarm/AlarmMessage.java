@@ -3,8 +3,8 @@ package com.vigil.alarm;
 import java.time.Instant;
 import java.util.UUID;
 
-import com.vigil.app.VigilMessage;
-import com.vigil.app.MessageType;
+import com.vigil.message.MessageType;
+import com.vigil.message.VigilMessage;
 
 public record AlarmMessage<T> (
         UUID alarmId,

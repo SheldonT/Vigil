@@ -2,8 +2,8 @@ package com.vigil.listener;
 
 import java.util.UUID;
 
-import com.vigil.alarm.AlarmMessage;
+import com.vigil.message.VigilMessage;
 
 public interface  AlarmAcknowledger{
-    AlarmMessage<?> acknowledgeAlarm(UUID alarmId);
+    VigilMessage acknowledgeAlarm(UUID alarmId);
 }

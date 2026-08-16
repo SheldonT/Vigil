@@ -91,7 +91,8 @@ Create a class in `com.vigil.dispatcher` that extends `Dispatcher`. Use `seriali
 ```java
 package com.vigil.dispatcher;
 
-import com.vigil.alarm.AlarmAcknowledgeOut;
+import com.vigil.message.AlarmAcknowledgeOut;
+import com.vigil.message.AlarmAcknowledgeFail;
 import com.vigil.alarm.AlarmMessage;
 import com.vigil.monitor.TelemetryOut;
 
@@ -122,6 +123,11 @@ public class HttpDispatcher extends Dispatcher {
     @Override
     public void sendAlarmAcknowledgement(AlarmAcknowledgeOut acknowledgement) {
         post(serialize(acknowledgement));
+    }
+
+    @Override
+    public void sendAlarmAcknowledgeFail(AlarmAcknowledgeFail failure) {
+        post(serialize(failure));
     }
 
     private void post(String json) {
@@ -161,23 +167,24 @@ Create a class in `com.vigil.listener` that extends `Listener` and implements `A
 
 - Call `deserialize(rawJson)` to parse inbound messages — it returns `Optional<VigilMessage>`, which is non-empty only for actionable message types (currently `ACKNOWLEDGE_ALARM`).
 - Call `ifPresent(this::handleMessage)` to route to `handleMessage`.
-- Provide a `Function<UUID, AlarmMessage<?>>` callback in the constructor so the listener can trigger acknowledgements on the engine.
+- Provide a `Function<UUID, VigilMessage>` callback in the constructor so the listener can trigger acknowledgements on the engine.
 
 ```java
 package com.vigil.listener;
 
 import java.util.UUID;
 import java.util.function.Function;
-import com.vigil.alarm.AlarmAcknowledgeIn;
+import com.vigil.message.AlarmAcknowledgeIn;
 import com.vigil.alarm.AlarmMessage;
-import com.vigil.app.VigilMessage;
+import com.vigil.message.MessageType;
+import com.vigil.message.VigilMessage;
 
 public class HttpPollingListener extends Listener implements AlarmAcknowledger {
 
-    private final Function<UUID, AlarmMessage<?>> ackCallback;
+    private final Function<UUID, VigilMessage> ackCallback;
     private volatile boolean running;
 
-    public HttpPollingListener(Function<UUID, AlarmMessage<?>> ackCallback) {
+    public HttpPollingListener(Function<UUID, VigilMessage> ackCallback) {
         this.ackCallback = ackCallback;
     }
 
@@ -194,14 +201,14 @@ public class HttpPollingListener extends Listener implements AlarmAcknowledger {
 
     @Override
     protected void handleMessage(VigilMessage msg) {
-        if (msg.type() == com.vigil.app.MessageType.ACKNOWLEDGE_ALARM) {
+        if (msg.type() == MessageType.ACKNOWLEDGE_ALARM) {
             AlarmAcknowledgeIn ack = (AlarmAcknowledgeIn) msg;
             acknowledgeAlarm(ack.alarmId());
         }
     }
 
     @Override
-    public AlarmMessage<?> acknowledgeAlarm(UUID alarmId) {
+    public VigilMessage acknowledgeAlarm(UUID alarmId) {
         return ackCallback.apply(alarmId);
     }
 
