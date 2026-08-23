@@ -256,4 +256,39 @@ class AlarmEngineTest {
         assertNotNull(outboundFailure, "Unknown alarm id should enqueue failure event");
         assertEquals(unknownAlarmId, outboundFailure.alarmId());
     }
+
+    @Test
+    void acknowledgeIncomingMessage_acceptsDeviceMetadata() {
+        String json = """
+            {
+              "type": "ACKNOWLEDGE_ALARM",
+              "alarmId": "c6d1919b-5553-4fa9-823c-c74aa4b71511",
+              "deviceId": "nas-01",
+              "deviceName": "NAS"
+            }
+            """;
+
+        var listener = new com.vigil.listener.Listener() {
+            @Override
+            public void start() {}
+
+            @Override
+            public void stop() {}
+
+            @Override
+            protected void handleMessage(VigilMessage msg) {}
+
+            public VigilMessage parse(String payload) {
+                return deserialize(payload).orElseThrow();
+            }
+        };
+
+        VigilMessage message = listener.parse(json);
+        assertEquals(com.vigil.message.MessageType.ACKNOWLEDGE_ALARM, message.type());
+        assertInstanceOf(com.vigil.message.AlarmAcknowledgeIn.class, message);
+
+        com.vigil.message.AlarmAcknowledgeIn ack = (com.vigil.message.AlarmAcknowledgeIn) message;
+        assertEquals("nas-01", ack.deviceId());
+        assertEquals("NAS", ack.deviceName());
+    }
 }

@@ -7,7 +7,9 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 
 @JsonIgnoreProperties(ignoreUnknown = true)
 public record AlarmAcknowledgeIn(
-    @JsonProperty("alarmId") UUID alarmId
+    @JsonProperty("alarmId") UUID alarmId,
+    @JsonProperty("deviceId") String deviceId,
+    @JsonProperty("deviceName") String deviceName
 ) implements VigilMessage {
 
         @Override
