@@ -100,7 +100,8 @@ public class HttpDispatcher extends Dispatcher {
 
     private final String endpoint;
 
-    public HttpDispatcher(String endpoint) {
+    public HttpDispatcher(String endpoint, AppConfig appConfig) {
+        super(appConfig);
         this.endpoint = endpoint;
     }
 
@@ -136,7 +137,7 @@ public class HttpDispatcher extends Dispatcher {
 }
 ```
 
-The `serialize()` method produces the standard Vigil JSON payload including the `"type"` field.
+The `serialize()` method produces the standard Vigil JSON payload including the `"type"` field and the configured device metadata (`deviceName` and `deviceId`) from the application config.
 
 ### 2. Add a `Configuration` record
 
@@ -146,7 +147,7 @@ Add a static inner `Configuration` record with a `fromMap(Map<String, Object>)` 
 
 ```java
 case "Http":
-    return new HttpDispatcher(HttpDispatcher.Configuration.fromMap(config));
+    return new HttpDispatcher(HttpDispatcher.Configuration.fromMap(config), appConfig);
 ```
 
 ### 4. Add to config

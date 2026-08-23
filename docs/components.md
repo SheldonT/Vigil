@@ -59,6 +59,17 @@ The WebSocket listener connects to the relay server as a **client**. Any message
 
 ---
 
+## Application metadata
+
+The `[app]` section provides runtime identity for the Vigil instance. These values are included in every dispatched JSON payload as `deviceName` and `deviceId`:
+
+```toml
+[app]
+name = "NAS"
+id = "nas-01"
+pollingIntervalMs = 500
+```
+
 ## Dispatchers
 
 Dispatchers send `ALARM`, `TELEMETRY`, `ALARM_ACKNOWLEDGED`, and `ALARM_ACKNOWLEDGE_FAILED` events outbound to configured destinations.
@@ -108,7 +119,9 @@ type = "WebSocket"
 host = "ws://localhost:8080"
 ```
 
-Connects to the relay as a client and sends JSON. The relay is responsible for broadcasting to subscribed clients.
+Connects to the relay as a client and sends JSON. The relay is responsible for broadcasting to subscribed clients. WebSocket connections automatically retry after disconnects and suppress repeated reconnect noise with throttled logging.
+
+For all dispatcher types, the serialized payload includes the configured app metadata as `deviceName` and `deviceId` alongside the standard message fields.
 
 ### Acknowledgement responses
 

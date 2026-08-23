@@ -42,6 +42,11 @@ java -jar app/build/libs/vigil.jar path/to/config.toml
 All configuration is done in a single TOML file. A complete example:
 
 ```toml
+[app]
+name = "NAS"
+id = "nas-01"
+pollingIntervalMs = 500
+
 [logging]
 fileName    = "vigil.log"
 fileSize    = 512        # MB per log file
@@ -99,9 +104,13 @@ Setpoints must satisfy: `lowAlarm < lowWarning < highWarning < highAlarm`.
 
 ### Dispatchers
 
-| Type   | Description                                    |
-|--------|------------------------------------------------|
-| `File` | Writes alarm events to a rotating flat file    |
+| Type        | Description                                              |
+|-------------|----------------------------------------------------------|
+| `File`      | Writes alarm events to a rotating flat file              |
+| `MQTT`      | Publishes JSON messages to a configured MQTT topic      |
+| `WebSocket` | Sends JSON payloads to a WebSocket relay                |
+
+All outbound payloads include the configured `deviceName` and `deviceId` from `[app]` so downstream consumers can identify the source device.
 
 ## Extending Vigil
 
@@ -144,13 +153,42 @@ case "Disk":
 ```java
 package com.vigil.dispatcher;
 
-import com.vigil.alarm.AlarmResult;
+import com.vigil.alarm.AlarmMessage;
+import com.vigil.app.AppConfig;
+import com.vigil.message.AlarmAcknowledgeFail;
+import com.vigil.message.AlarmAcknowledgeOut;
+import com.vigil.monitor.TelemetryOut;
 
 public class ConsoleDispatcher extends Dispatcher {
 
+    public ConsoleDispatcher(AppConfig appConfig) {
+        super(appConfig);
+    }
+
     @Override
-    public void send(AlarmResult result) {
-        System.out.println(result.timestampNow + " " + result.name + " " + result.status);
+    public void start() {}
+
+    @Override
+    public void stop() {}
+
+    @Override
+    public void sendAlarm(AlarmMessage<?> result) {
+        System.out.println(serialize(result));
+    }
+
+    @Override
+    public void sendValue(TelemetryOut<?> value) {
+        System.out.println(serialize(value));
+    }
+
+    @Override
+    public void sendAlarmAcknowledgement(AlarmAcknowledgeOut acknowledgement) {
+        System.out.println(serialize(acknowledgement));
+    }
+
+    @Override
+    public void sendAlarmAcknowledgeFail(AlarmAcknowledgeFail failure) {
+        System.out.println(serialize(failure));
     }
 }
 ```
@@ -159,7 +197,7 @@ public class ConsoleDispatcher extends Dispatcher {
 
 ```java
 case "Console":
-    return new ConsoleDispatcher();
+    return new ConsoleDispatcher(appConfig);
 ```
 
 3. Add a `[dispatcher.Console]` section with `type = "Console"` to your config.

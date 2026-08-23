@@ -32,6 +32,8 @@ The only required sections are `[app]`, `[logging]`, at least one `[monitor.*]`,
 
 ```toml
 [app]
+name = "NAS"
+id = "nas-01"
 pollingIntervalMs = 500
 
 [logging]
@@ -68,9 +70,13 @@ clearDelayMs      = 1000
 
 ### `[app]`
 
-| Key               | Type | Description                              |
-|-------------------|------|------------------------------------------|
-| `pollingIntervalMs` | int | How often monitors are polled (ms)      |
+| Key                 | Type   | Description                                         |
+|---------------------|--------|-----------------------------------------------------|
+| `name`              | string | Human-readable device name for emitted messages     |
+| `id`                | string | Unique device identifier for emitted messages       |
+| `pollingIntervalMs` | int    | How often monitors are polled (ms)                  |
+
+These values are included in outgoing JSON payloads as `deviceName` and `deviceId` so downstream systems can identify the originating device.
 
 ### `[logging]`
 
