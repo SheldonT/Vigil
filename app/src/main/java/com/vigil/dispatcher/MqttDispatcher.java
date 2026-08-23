@@ -6,6 +6,7 @@ import java.util.Map;
 import com.hivemq.client.mqtt.MqttClient;
 import com.hivemq.client.mqtt.mqtt5.Mqtt5AsyncClient;
 import com.vigil.alarm.AlarmMessage;
+import com.vigil.app.AppConfig;
 import com.vigil.config.ConfigValidator;
 import com.vigil.message.AlarmAcknowledgeFail;
 import com.vigil.message.AlarmAcknowledgeOut;
@@ -37,9 +38,9 @@ public class MqttDispatcher extends Dispatcher{
     private final Configuration config;
     private Mqtt5AsyncClient client;
 
-    public MqttDispatcher(Configuration config) {
+    public MqttDispatcher(Configuration config, AppConfig appConfig) {
 
-        super();
+        super(appConfig);
 
         this.config = config;
 

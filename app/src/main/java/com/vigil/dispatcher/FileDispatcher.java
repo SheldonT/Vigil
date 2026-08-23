@@ -14,6 +14,7 @@ import com.vigil.config.ConfigValidator;
 import com.vigil.message.AlarmAcknowledgeFail;
 import com.vigil.message.AlarmAcknowledgeOut;
 import com.vigil.monitor.TelemetryOut;
+import com.vigil.app.AppConfig;
 
 public class FileDispatcher extends Dispatcher{
 
@@ -23,7 +24,6 @@ public class FileDispatcher extends Dispatcher{
 
             Map<String, Object> validMap = ConfigValidator.requireMap(map, "File Dispatcher Map");
             Configuration config = new Configuration(
-
                 ConfigValidator.requireString(validMap, "File Dispatcher", "fileName"),
                 ConfigValidator.requireLong(validMap, "File Dispatcher", "maxLineCount")
             );
@@ -41,7 +41,9 @@ public class FileDispatcher extends Dispatcher{
     private long lineCount = 0;
     private final Configuration config;
 
-    public FileDispatcher(Configuration config) {
+    public FileDispatcher(Configuration config, AppConfig appConfig) {
+
+        super(appConfig);
 
         this.config = config;
 

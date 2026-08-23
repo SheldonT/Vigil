@@ -12,8 +12,11 @@ services:
       - mosquitto
     volumes:
       - ./mqtt_sub.py:/app/mqtt_sub.py
+      - ./logs:/logs
     working_dir: /app
     command: >-
       sh -c "pip install paho-mqtt -q && python -u mqtt_sub.py"
     environment:
       - BROKER=mosquitto
+      - LOG_FILE=/logs/mqtt-subscriber.log
+      - LOG_MAX_BYTES=262144000

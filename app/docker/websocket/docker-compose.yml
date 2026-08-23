@@ -4,6 +4,10 @@ services:
     working_dir: /app
     volumes:
       - ./websocket_svr.py:/app/websocket_svr.py
+      - ./logs:/logs
+    environment:
+      - LOG_FILE=/logs/websocket-server.log
+      - LOG_MAX_BYTES=262144000
     command: >-
       sh -c "pip install websockets -q && python -u websocket_svr.py"
     ports:
@@ -16,7 +20,10 @@ services:
     working_dir: /app
     volumes:
       - ./websocket_sub.py:/app/websocket_sub.py
+      - ./logs:/logs
     environment:
       - WEBSOCKET_URL=ws://websocket-server:8080
+      - LOG_FILE=/logs/websocket-subscriber.log
+      - LOG_MAX_BYTES=262144000
     command: >-
       sh -c "pip install websocket-client -q && python -u websocket_sub.py"

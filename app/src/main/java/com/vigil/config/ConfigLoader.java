@@ -86,7 +86,7 @@ public class ConfigLoader {
         return alarmConfigs;
      }
 
-     public List<Dispatcher> buildDispatchers(){
+     public List<Dispatcher> buildDispatchers(AppConfig appConfig){
 
             logger.info("Building dispatcher list...");
             Map<String, Object> dispatchers = ConfigValidator.requireMap(config.get("dispatcher"), "Dispatcher Config Map");
@@ -94,8 +94,9 @@ public class ConfigLoader {
 
             for (Map.Entry<String, Object> entry : dispatchers.entrySet()) {
                 Map<String, Object> dispatcher = ConfigValidator.requireMap(entry.getValue(), "Dispatcher Settings");
+
                 logger.info("Adding " + entry.getKey() + " to dispatcher list");
-                dispatcherObj.add(DispatcherFactory.create(dispatcher));
+                dispatcherObj.add(DispatcherFactory.create(dispatcher, appConfig));
             }
 
             logger.info(dispatcherObj.size() + " dispatchers created");

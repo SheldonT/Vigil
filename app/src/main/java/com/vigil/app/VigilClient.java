@@ -49,7 +49,7 @@ public class VigilClient {
             List<Listener> listeners = loader.buildListeners(alarmEngine);
 
             //build a list of dispatchers
-            List<Dispatcher> dispatchers = loader.buildDispatchers();
+            List<Dispatcher> dispatchers = loader.buildDispatchers(appConfig);
 
             mainLoop = new VigilLoop(appConfig, monitors, dispatchers, listeners, alarmEngine);
 

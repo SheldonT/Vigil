@@ -7,12 +7,16 @@ import com.vigil.config.ConfigValidator;
 
 public class AppConfig {
     
-    private final String id;
+    private final String configId;
+    private final String deviceName;
+    private final String deviceId;
     private final long pollingIntervalMs;
 
-    private AppConfig(String id, long pollingIntervalMs){
+    private AppConfig(String configId, String deviceName, String deviceId, long pollingIntervalMs){
 
-        this.id = id;
+        this.configId = configId;
+        this.deviceName = deviceName;
+        this.deviceId = deviceId;
         this.pollingIntervalMs = pollingIntervalMs;
     }
 
@@ -23,9 +27,12 @@ public class AppConfig {
         }
     }
 
-    public static AppConfig fromMap(String id, Map<String, Object> table) {
-        AppConfig config =  new AppConfig(id,
-            ConfigValidator.requireLong(table, id, "pollingIntervalMs"));
+    public static AppConfig fromMap(String configId, Map<String, Object> table) {
+        AppConfig config =  new AppConfig(configId,
+            ConfigValidator.requireString(table, configId, "name"),
+            ConfigValidator.requireString(table, configId, "id"),
+            ConfigValidator.requireLong(table, configId, "pollingIntervalMs")
+        );
 
         config.validate();
 
@@ -33,7 +40,14 @@ public class AppConfig {
     }
 
     public String getConfigId() {
-        return this.id;
+        return this.configId;
+    }
+    public String getDeviceId() {
+        return this.deviceId;
+    }
+
+    public String getDeviceName() {
+        return this.deviceName;
     }
     
     public long getPollingIntervalMs() {
