@@ -1,6 +1,6 @@
 package com.vigil.alarm;
 
-import com.vigil.monitor.TelemetryOut;
+import com.vigil.message.TelemetryOut;
 
 public abstract class AlarmEvaluator<T> {
     

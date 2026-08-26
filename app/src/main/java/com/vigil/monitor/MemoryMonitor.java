@@ -5,6 +5,7 @@ import java.util.Map;
 
 import com.vigil.alarm.AlarmEvaluator;
 import com.vigil.config.ConfigValidator;
+import com.vigil.message.TelemetryOut;
 
 public class MemoryMonitor extends Monitor<Double>{
 

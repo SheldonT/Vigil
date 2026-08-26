@@ -5,12 +5,12 @@ import java.util.Map;
 
 import com.hivemq.client.mqtt.MqttClient;
 import com.hivemq.client.mqtt.mqtt5.Mqtt5AsyncClient;
-import com.vigil.alarm.AlarmMessage;
 import com.vigil.app.AppConfig;
 import com.vigil.config.ConfigValidator;
 import com.vigil.message.AlarmAcknowledgeFail;
 import com.vigil.message.AlarmAcknowledgeOut;
-import com.vigil.monitor.TelemetryOut;
+import com.vigil.message.AlarmMessage;
+import com.vigil.message.TelemetryOut;
 
 public class MqttDispatcher extends Dispatcher{
 

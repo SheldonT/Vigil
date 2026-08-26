@@ -18,6 +18,7 @@ import com.vigil.listener.Listener;
 import com.vigil.dispatcher.Dispatcher;
 import com.vigil.alarm.AlarmEngine;
 import com.vigil.app.AppConfig;
+import com.vigil.command.CommandEngine;
 
 public class ConfigLoader {
 
@@ -104,7 +105,7 @@ public class ConfigLoader {
             return dispatcherObj;
      }
 
-    public List<Listener> buildListeners(AlarmEngine alarmEngine){
+    public List<Listener> buildListeners(AlarmEngine alarmEngine, CommandEngine commandEngine){
 
         logger.info("Building listener list...");
         Map<String, Object> listeners = ConfigValidator.requireMap(config.get("listener"), "Dispatcher Config Map");
@@ -113,7 +114,7 @@ public class ConfigLoader {
         for (Map.Entry<String, Object> entry : listeners.entrySet()) {
             Map<String, Object> listener = ConfigValidator.requireMap(entry.getValue(), "listener Settings");
             logger.info("Adding " + entry.getKey() + " to listener list");
-            listenerObj.add(ListenerFactory.create(listener, alarmEngine));
+            listenerObj.add(ListenerFactory.create(listener, alarmEngine, commandEngine));
         }
 
         logger.info(listenerObj.size() + " dispatchers created");

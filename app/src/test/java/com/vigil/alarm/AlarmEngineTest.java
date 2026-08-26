@@ -12,10 +12,11 @@ import org.junit.jupiter.api.Test;
 import static org.junit.jupiter.api.Assertions.*;
 
 import com.vigil.message.AlarmAcknowledgeOut;
+import com.vigil.message.AlarmMessage;
+import com.vigil.message.TelemetryOut;
 import com.vigil.message.AlarmAcknowledgeFail;
 import com.vigil.message.VigilMessage;
 import com.vigil.monitor.Monitor;
-import com.vigil.monitor.TelemetryOut;
 
 class AlarmEngineTest {
 
@@ -261,7 +262,8 @@ class AlarmEngineTest {
     void acknowledgeIncomingMessage_acceptsDeviceMetadata() {
         String json = """
             {
-              "type": "ACKNOWLEDGE_ALARM",
+              "type": "COMMAND",
+              "commandType": "ACKNOWLEDGE",
               "alarmId": "c6d1919b-5553-4fa9-823c-c74aa4b71511",
               "deviceId": "nas-01",
               "deviceName": "NAS"
@@ -275,19 +277,18 @@ class AlarmEngineTest {
             @Override
             public void stop() {}
 
-            @Override
-            protected void handleMessage(VigilMessage msg) {}
-
-            public VigilMessage parse(String payload) {
+            public com.vigil.command.VigilCommand parse(String payload) {
                 return deserialize(payload).orElseThrow();
             }
         };
 
-        VigilMessage message = listener.parse(json);
-        assertEquals(com.vigil.message.MessageType.ACKNOWLEDGE_ALARM, message.type());
-        assertInstanceOf(com.vigil.message.AlarmAcknowledgeIn.class, message);
+        com.vigil.command.VigilCommand message = listener.parse(json);
+        assertEquals(com.vigil.message.MessageType.COMMAND, message.type());
+        assertEquals(com.vigil.command.CommandType.ACKNOWLEDGE, message.commandType());
+        assertInstanceOf(com.vigil.command.AlarmAcknowledgeIn.class, message);
 
-        com.vigil.message.AlarmAcknowledgeIn ack = (com.vigil.message.AlarmAcknowledgeIn) message;
+        com.vigil.command.AlarmAcknowledgeIn ack = (com.vigil.command.AlarmAcknowledgeIn) message;
+        assertEquals(UUID.fromString("c6d1919b-5553-4fa9-823c-c74aa4b71511"), ack.alarmId());
         assertEquals("nas-01", ack.deviceId());
         assertEquals("NAS", ack.deviceName());
     }

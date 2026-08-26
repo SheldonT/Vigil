@@ -1,8 +1,9 @@
 package com.vigil.alarm;
 
-import com.vigil.monitor.TelemetryOut;
-
 import java.time.Instant;
+
+import com.vigil.message.TelemetryOut;
+
 import java.time.Duration;
 
 public class NumericAlarmEvaluator extends AlarmEvaluator<Double> {

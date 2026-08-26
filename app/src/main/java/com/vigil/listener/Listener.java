@@ -7,9 +7,12 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
-import com.vigil.message.AlarmAcknowledgeIn;
+import com.vigil.command.CommandType;
 import com.vigil.message.MessageType;
 import com.vigil.message.VigilMessage;
+
+import com.vigil.command.VigilCommand;
+import com.vigil.command.AlarmAcknowledgeIn;
 
 public abstract class Listener {
 
@@ -26,49 +29,94 @@ public abstract class Listener {
         );
     }
 
-    protected abstract void handleMessage(VigilMessage msg);
+    // protected abstract void handleMessage(VigilMessage msg);
 
-    protected Optional<VigilMessage> deserialize(String json) {
+    protected Optional<VigilCommand> deserialize(String json) {
 
         try {
-            JsonNode node = this.objectMapper.readTree(json);
+            JsonNode node = objectMapper.readTree(json);
 
-            JsonNode typeNode = node.get("type");
+            MessageType type = getMessageType(node);
 
-            if (typeNode == null) {
+            if (type != MessageType.COMMAND) {
                 throw new IllegalArgumentException(
-                    "Vigil message is missing type"
+                    "Message is not a command message"
                 );
             }
 
-            MessageType type;
+            CommandType commandType = getCommandType(node);
 
-            try{
-                type = MessageType.valueOf(typeNode.asText());
-            } catch(IllegalArgumentException e) {
-                throw new IllegalArgumentException(
-                    "Unsupported incoming message type: " + typeNode.asText()
-                );
-            }
-
-            return switch (type) {
-
-                case ACKNOWLEDGE_ALARM ->
-                    Optional.of(
-                        objectMapper.treeToValue(
-                            node,
-                            AlarmAcknowledgeIn.class
-                        )
-                    );
-  
-                default ->Optional.empty();
-            };
+            return deserializeCommand(node, commandType);
 
         } catch (JsonProcessingException e) {
             throw new IllegalArgumentException(
                 "Invalid Vigil message JSON", e
             );
         }
+    }
+
+    private MessageType getMessageType(JsonNode node) {
+
+        JsonNode typeNode = node.get("type");
+
+        if (typeNode == null) {
+            throw new IllegalArgumentException(
+                "Vigil message is missing type"
+            );
+        }
+
+        try {
+            return MessageType.valueOf(typeNode.asText());
+        } catch (IllegalArgumentException e) {
+            throw new IllegalArgumentException(
+                "Unsupported incoming message type: " + typeNode.asText()
+            );
+        }
+    }
+
+    private CommandType getCommandType(JsonNode node) {
+
+        JsonNode commandTypeNode = node.get("commandType");
+
+        if (commandTypeNode == null) {
+            throw new IllegalArgumentException(
+                "Vigil command type is missing"
+            );
+        }
+
+        try {
+            return CommandType.valueOf(commandTypeNode.asText());
+        } catch (IllegalArgumentException e) {
+            throw new IllegalArgumentException(
+                "Unsupported incoming command type: "
+                + commandTypeNode.asText()
+            );
+        }
+    }
+
+    private Optional<VigilCommand> deserializeCommand(
+        JsonNode node,
+        CommandType commandType
+    ) throws JsonProcessingException {
+
+        return switch (commandType) {
+
+            case ACKNOWLEDGE ->
+                Optional.of(
+                    objectMapper.treeToValue(
+                        node,
+                        AlarmAcknowledgeIn.class
+                    )
+                );
+
+            // case GET_STATE ->
+            //     Optional.of(
+            //         objectMapper.treeToValue(
+            //             node,
+            //             GetStateIn.class
+            //         )
+            //     );
+            };
     }
 
 }

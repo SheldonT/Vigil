@@ -7,11 +7,11 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
-import com.vigil.alarm.AlarmMessage;
 import com.vigil.message.AlarmAcknowledgeFail;
 import com.vigil.message.AlarmAcknowledgeOut;
+import com.vigil.message.AlarmMessage;
+import com.vigil.message.TelemetryOut;
 import com.vigil.message.VigilMessage;
-import com.vigil.monitor.TelemetryOut;
 import com.vigil.app.AppConfig;
 
 public abstract class Dispatcher {

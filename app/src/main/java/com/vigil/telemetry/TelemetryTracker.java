@@ -4,8 +4,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.HashMap;
 
+import com.vigil.message.TelemetryOut;
 import com.vigil.monitor.Monitor;
-import com.vigil.monitor.TelemetryOut;
 
 public class TelemetryTracker {
 

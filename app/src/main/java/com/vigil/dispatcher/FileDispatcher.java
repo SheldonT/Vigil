@@ -9,11 +9,11 @@ import java.nio.file.StandardOpenOption;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 
-import com.vigil.alarm.AlarmMessage;
 import com.vigil.config.ConfigValidator;
 import com.vigil.message.AlarmAcknowledgeFail;
 import com.vigil.message.AlarmAcknowledgeOut;
-import com.vigil.monitor.TelemetryOut;
+import com.vigil.message.AlarmMessage;
+import com.vigil.message.TelemetryOut;
 import com.vigil.app.AppConfig;
 
 public class FileDispatcher extends Dispatcher{

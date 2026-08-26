@@ -2,17 +2,14 @@ package com.vigil.listener;
 
 import java.nio.charset.StandardCharsets;
 import java.util.Map;
-import java.util.UUID;
-import java.util.function.Function;
 import java.util.logging.Logger;
 import com.hivemq.client.mqtt.MqttClient;
 import com.hivemq.client.mqtt.mqtt5.message.publish.Mqtt5Publish;
 import com.hivemq.client.mqtt.mqtt5.Mqtt5AsyncClient;
 import com.vigil.config.ConfigValidator;
-import com.vigil.message.AlarmAcknowledgeIn;
-import com.vigil.message.VigilMessage;
+import com.vigil.command.CommandEngine;
 
-public class MqttListener extends Listener implements AlarmAcknowledger {
+public class MqttListener extends Listener {
 
     private static final Logger logger = Logger.getLogger(MqttListener.class.getName());
 
@@ -37,13 +34,13 @@ public class MqttListener extends Listener implements AlarmAcknowledger {
         }
     }
 
-    private final Function<UUID, VigilMessage> ackCallback;
+    private final CommandEngine commandEngine;
     private final Mqtt5AsyncClient client;
     private final String topic;
 
-    public MqttListener(Function<UUID, VigilMessage> callback, Configuration config){
+    public MqttListener(CommandEngine commandEngine, Configuration config){
         super();
-        this.ackCallback = callback;
+        this.commandEngine = commandEngine;
         this.client = createClient(config);
         this.topic = config.topic();
     }
@@ -64,31 +61,32 @@ public class MqttListener extends Listener implements AlarmAcknowledger {
                 .decode(publish.getPayload().orElseThrow())
                 .toString();
 
-            this.deserialize(message).ifPresent(this::handleMessage);
+            this.deserialize(message).ifPresent(this.commandEngine::handleCommand);
+            
             
         } catch (Exception e) {
             logger.warning("Unsupported message type received by MQTT Listener: " + e);
         }
     }
 
-    @Override
-    protected void handleMessage(VigilMessage msg) {
+    // @Override
+    // protected void handleMessage(VigilMessage msg) {
 
-        switch (msg.type()) {
+    //     switch (msg.type()) {
 
-            case ACKNOWLEDGE_ALARM -> {
-                AlarmAcknowledgeIn acknowledgement =
-                    (AlarmAcknowledgeIn) msg;
+    //         case ACKNOWLEDGE_ALARM -> {
+    //             AlarmAcknowledgeIn acknowledgement =
+    //                 (AlarmAcknowledgeIn) msg;
 
-                this.acknowledgeAlarm(acknowledgement.alarmId());
-            }
+    //             this.acknowledgeAlarm(acknowledgement.alarmId());
+    //         }
 
-            default ->
-                logger.warning(
-                    "Unsupported message type: " + msg.type()
-                );
-        }
-    }
+    //         default ->
+    //             logger.warning(
+    //                 "Unsupported message type: " + msg.type()
+    //             );
+    //     }
+    // }
 
     @Override
     public void start(){
@@ -133,8 +131,8 @@ public class MqttListener extends Listener implements AlarmAcknowledger {
         });
     }
 
-    @Override
-    public VigilMessage acknowledgeAlarm (UUID alarmId){
-        return ackCallback.apply(alarmId);
-    }
+    // @Override
+    // public VigilMessage acknowledgeAlarm (UUID alarmId){
+    //     return ackCallback.apply(alarmId);
+    // }
 }

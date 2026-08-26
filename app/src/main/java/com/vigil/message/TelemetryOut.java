@@ -1,9 +1,6 @@
-package com.vigil.monitor;
+package com.vigil.message;
 
 import java.time.Instant;
-
-import com.vigil.message.MessageType;
-import com.vigil.message.VigilMessage;
 
 public record TelemetryOut<T> (
     String name,

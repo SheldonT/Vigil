@@ -9,12 +9,12 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import org.java_websocket.client.WebSocketClient;
 import org.java_websocket.handshake.ServerHandshake;
 
-import com.vigil.alarm.AlarmMessage;
 import com.vigil.app.AppConfig;
 import com.vigil.config.ConfigValidator;
 import com.vigil.message.AlarmAcknowledgeFail;
 import com.vigil.message.AlarmAcknowledgeOut;
-import com.vigil.monitor.TelemetryOut;
+import com.vigil.message.AlarmMessage;
+import com.vigil.message.TelemetryOut;
 
 public class WebSocketDispatcher extends Dispatcher{
     private static final long RECONNECT_DELAY_MS = 2000;

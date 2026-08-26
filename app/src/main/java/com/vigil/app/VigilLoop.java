@@ -6,12 +6,12 @@ import java.util.logging.Logger;
 import com.vigil.monitor.Monitor;
 import com.vigil.alarm.AlarmEngine;
 import com.vigil.dispatcher.Dispatcher;
-import com.vigil.monitor.TelemetryOut;
 import com.vigil.telemetry.TelemetryTracker;
-import com.vigil.alarm.AlarmMessage;
 import com.vigil.listener.Listener;
 import com.vigil.message.AlarmAcknowledgeFail;
 import com.vigil.message.AlarmAcknowledgeOut;
+import com.vigil.message.AlarmMessage;
+import com.vigil.message.TelemetryOut;
 
 public class VigilLoop {
 

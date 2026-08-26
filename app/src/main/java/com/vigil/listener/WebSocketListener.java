@@ -10,15 +10,13 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Function;
 import java.util.logging.Logger;
 
-import com.vigil.alarm.AlarmMessage;
+import com.vigil.command.CommandEngine;
 import com.vigil.config.ConfigValidator;
-import com.vigil.message.AlarmAcknowledgeIn;
-import com.vigil.message.VigilMessage;
 
 import org.java_websocket.client.WebSocketClient;
 import org.java_websocket.handshake.ServerHandshake;
 
-public class WebSocketListener extends Listener implements AlarmAcknowledger{
+public class WebSocketListener extends Listener{
     private static final long RECONNECT_DELAY_MS = 2000;
     private static final long RECONNECT_LOG_THROTTLE_MS = 30000;
 
@@ -44,7 +42,7 @@ public class WebSocketListener extends Listener implements AlarmAcknowledger{
     private static final Logger logger =
         Logger.getLogger(WebSocketListener.class.getName());
 
-    private final Function<UUID, VigilMessage> ackCallback;
+    private final CommandEngine commandEngine;
     private final WebSocketClient client;
     private final ScheduledExecutorService reconnectExecutor;
     private final AtomicBoolean running;
@@ -52,11 +50,9 @@ public class WebSocketListener extends Listener implements AlarmAcknowledger{
     private long nextReconnectLogAtMs;
     private int suppressedReconnectLogs;
 
-    public WebSocketListener(
-        Function<UUID, VigilMessage> callback,
-        Configuration config) {
+    public WebSocketListener(CommandEngine commandEngine, Configuration config) {
 
-        this.ackCallback = callback;
+        this.commandEngine = commandEngine;
         this.reconnectExecutor = Executors.newSingleThreadScheduledExecutor(runnable -> {
             Thread thread = new Thread(runnable, "vigil-ws-listener-reconnect");
             thread.setDaemon(true);
@@ -79,7 +75,7 @@ public class WebSocketListener extends Listener implements AlarmAcknowledger{
             @Override
             public void onMessage(String message) {
                 try {
-                    deserialize(message).ifPresent(WebSocketListener.this::handleMessage);
+                    deserialize(message).ifPresent(WebSocketListener.this.commandEngine::handleCommand);
                 } catch (Exception e) {
                     logger.warning("WebSocket listener error: " + e.getMessage());
                 }
@@ -116,29 +112,29 @@ public class WebSocketListener extends Listener implements AlarmAcknowledger{
         this.client.close();
     }
 
-    @Override
-    protected void handleMessage(VigilMessage msg) {
-        switch (msg.type()) {
+    // @Override
+    // protected void handleMessage(VigilMessage msg) {
+    //     switch (msg.type()) {
 
-            case ACKNOWLEDGE_ALARM -> {
-                AlarmAcknowledgeIn acknowledgement =
-                    (AlarmAcknowledgeIn) msg;
+    //         case ACKNOWLEDGE_ALARM -> {
+    //             AlarmAcknowledgeIn acknowledgement =
+    //                 (AlarmAcknowledgeIn) msg;
 
-                acknowledgeAlarm(acknowledgement.alarmId());
-            }
+    //             acknowledgeAlarm(acknowledgement.alarmId());
+    //         }
 
-            default ->
-                logger.warning(
-                    "Unsupported message type received by WebSocket Listener: " + msg.type()
-                );
-        }
+    //         default ->
+    //             logger.warning(
+    //                 "Unsupported message type received by WebSocket Listener: " + msg.type()
+    //             );
+    //     }
             
-    }
+    // }
 
-    @Override
-    public VigilMessage acknowledgeAlarm(UUID alarmId){
-        return this.ackCallback.apply(alarmId);
-    }
+    // @Override
+    // public VigilMessage acknowledgeAlarm(UUID alarmId){
+    //     return this.ackCallback.apply(alarmId);
+    // }
 
     private void scheduleReconnect(String reason) {
         if (!this.running.get()) {

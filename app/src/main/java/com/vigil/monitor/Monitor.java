@@ -3,6 +3,7 @@ package com.vigil.monitor;
 import java.util.logging.Logger;
 
 import com.vigil.alarm.AlarmEvaluator;
+import com.vigil.message.TelemetryOut;
 
 public abstract class Monitor<T> {
 

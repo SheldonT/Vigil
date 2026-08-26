@@ -3,6 +3,8 @@ package com.vigil.alarm;
 import java.time.Instant;
 import java.util.UUID;
 
+import com.vigil.message.AlarmMessage;
+
 public class AlarmState<T> {
 
     private final UUID alarmId;

@@ -11,6 +11,7 @@ import com.vigil.config.TomlReader;
 import com.vigil.dispatcher.Dispatcher;
 import com.vigil.alarm.AlarmEngine;
 import com.vigil.listener.Listener;
+import com.vigil.command.CommandEngine;
 
 public class VigilClient {
 
@@ -45,8 +46,10 @@ public class VigilClient {
             //create the alarm engine
             AlarmEngine alarmEngine = new AlarmEngine(monitors);
 
+            CommandEngine commandEngine = new CommandEngine(alarmEngine);
+
             //build a list of listeners (they depend on the alarm engine)
-            List<Listener> listeners = loader.buildListeners(alarmEngine);
+            List<Listener> listeners = loader.buildListeners(alarmEngine, commandEngine);
 
             //build a list of dispatchers
             List<Dispatcher> dispatchers = loader.buildDispatchers(appConfig);
