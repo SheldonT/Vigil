@@ -21,8 +21,9 @@ public abstract class Dispatcher {
     protected final AppConfig appConfig;
     public abstract void start();
     public abstract void stop();
-    public abstract void sendAlarm(AlarmMessage<?> result);
-    public abstract void sendValue(TelemetryOut<?> value);
+    // public abstract void sendAlarm(AlarmMessage<?> result);
+    // public abstract void sendValue(TelemetryOut<?> value);
+    public abstract void send (VigilMessage message); 
     public abstract void sendAlarmAcknowledgement(AlarmAcknowledgeOut acknowledgement);
     public abstract void sendAlarmAcknowledgeFail(AlarmAcknowledgeFail failure);
 

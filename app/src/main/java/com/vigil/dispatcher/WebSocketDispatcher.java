@@ -15,6 +15,7 @@ import com.vigil.message.AlarmAcknowledgeFail;
 import com.vigil.message.AlarmAcknowledgeOut;
 import com.vigil.message.AlarmMessage;
 import com.vigil.message.TelemetryOut;
+import com.vigil.message.VigilMessage;
 
 public class WebSocketDispatcher extends Dispatcher{
     private static final long RECONNECT_DELAY_MS = 2000;
@@ -110,16 +111,23 @@ public class WebSocketDispatcher extends Dispatcher{
         this.client.close();
     }
 
-    @Override
-    public void sendAlarm(AlarmMessage<?> result) {
-        String payload = this.serialize(result);
+    // @Override
+    // public void sendAlarm(AlarmMessage<?> result) {
+    //     String payload = this.serialize(result);
 
-        this.sendIfConnected(payload, "alarm");
-    };
+    //     this.sendIfConnected(payload, "alarm");
+    // };
+
+    // @Override
+    // public void sendValue(TelemetryOut<?> value){
+    //     String payload = this.serialize(value);
+
+    //     this.sendIfConnected(payload, "telemetry");
+    // }
 
     @Override
-    public void sendValue(TelemetryOut<?> value){
-        String payload = this.serialize(value);
+    public void send(VigilMessage message){
+        String payload = this.serialize(message);
 
         this.sendIfConnected(payload, "telemetry");
     }
@@ -127,7 +135,7 @@ public class WebSocketDispatcher extends Dispatcher{
     @Override
     public void sendAlarmAcknowledgement(AlarmAcknowledgeOut acknowledgement){
         String payload = this.serialize(acknowledgement);
-        System.out.println(payload);
+
         this.sendIfConnected(payload, "alarm acknowledgement");
     }
 

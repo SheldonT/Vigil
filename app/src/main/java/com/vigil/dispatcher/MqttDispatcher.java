@@ -11,6 +11,7 @@ import com.vigil.message.AlarmAcknowledgeFail;
 import com.vigil.message.AlarmAcknowledgeOut;
 import com.vigil.message.AlarmMessage;
 import com.vigil.message.TelemetryOut;
+import com.vigil.message.VigilMessage;
 
 public class MqttDispatcher extends Dispatcher{
 
@@ -95,7 +96,7 @@ public class MqttDispatcher extends Dispatcher{
     }
 
     @Override
-    public void sendAlarm(AlarmMessage<?> result){
+    public void send(VigilMessage result){
 
         String payload = this.serialize(result);
 
@@ -108,17 +109,31 @@ public class MqttDispatcher extends Dispatcher{
         .send();
     }
 
-    @Override
-    public void sendValue(TelemetryOut<?> result){
-        //String payload = result.timestamp() + "," + result.name() + "," + result.value();
-        String payload = this.serialize(result);
-        //String topic = this.config.topic() + "/telemetry";
+    // @Override
+    // public void sendAlarm(AlarmMessage<?> result){
+
+    //     String payload = this.serialize(result);
+
+    //     //String payload = result.lastUpdated()+ "," + result.alarmId() + "," + result.name() + "," + result.status() + "," + result.value();
+    //     //String topic = this.config.topic() + "/alarm";
+
+    //     this.client.publishWith()
+    //     .topic(this.config.topic)
+    //     .payload(payload.getBytes())
+    //     .send();
+    // }
+
+    // @Override
+    // public void sendValue(TelemetryOut<?> result){
+    //     //String payload = result.timestamp() + "," + result.name() + "," + result.value();
+    //     String payload = this.serialize(result);
+    //     //String topic = this.config.topic() + "/telemetry";
         
-        this.client.publishWith()
-        .topic(this.config.topic())
-        .payload(payload.getBytes())
-        .send();
-    }
+    //     this.client.publishWith()
+    //     .topic(this.config.topic())
+    //     .payload(payload.getBytes())
+    //     .send();
+    // }
 
     @Override
     public void sendAlarmAcknowledgement(AlarmAcknowledgeOut acknowledgement){

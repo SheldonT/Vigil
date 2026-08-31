@@ -9,6 +9,7 @@ import com.vigil.config.ConfigLoader;
 import com.vigil.monitor.SystemMetricsProvider;
 import com.vigil.config.TomlReader;
 import com.vigil.dispatcher.Dispatcher;
+import com.vigil.dispatcher.OutgoingMessageQueue;
 import com.vigil.alarm.AlarmEngine;
 import com.vigil.listener.Listener;
 import com.vigil.command.CommandEngine;
@@ -43,8 +44,10 @@ public class VigilClient {
             //build a list of monitors
             List<Monitor<?>> monitors = loader.buildMonitors();
 
+            OutgoingMessageQueue outgoingMessageQueue = new OutgoingMessageQueue();
+
             //create the alarm engine
-            AlarmEngine alarmEngine = new AlarmEngine(monitors);
+            AlarmEngine alarmEngine = new AlarmEngine(monitors, outgoingMessageQueue);
 
             CommandEngine commandEngine = new CommandEngine(alarmEngine);
 
@@ -54,7 +57,12 @@ public class VigilClient {
             //build a list of dispatchers
             List<Dispatcher> dispatchers = loader.buildDispatchers(appConfig);
 
-            mainLoop = new VigilLoop(appConfig, monitors, dispatchers, listeners, alarmEngine);
+            mainLoop = new VigilLoop(appConfig,
+                monitors,
+                dispatchers,
+                listeners,
+                alarmEngine,
+                outgoingMessageQueue);
 
             shutdownHandler.register(mainLoop::stop);
 

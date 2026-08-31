@@ -11,6 +11,7 @@ import java.util.concurrent.ConcurrentLinkedQueue;
 import com.vigil.message.AlarmAcknowledgeOut;
 import com.vigil.message.AlarmMessage;
 import com.vigil.message.TelemetryOut;
+import com.vigil.dispatcher.OutgoingEventSink;
 import com.vigil.message.AlarmAcknowledgeFail;
 import com.vigil.message.VigilMessage;
 import com.vigil.monitor.Monitor;
@@ -22,14 +23,12 @@ public class AlarmEngine {
     //private final Map<String, NumericAlarmConfig> alarmConfigs;
     private final Map<String, MonitorState<?>> monitorStates = new HashMap<>();
     private final Map<String, AlarmState<?>> alarmStates = new HashMap<>();
-    private final Queue<AlarmMessage<?>> startupAlarms = new ArrayDeque<>();
-    private final Queue<AlarmAcknowledgeFail> ackFailQueue = new ConcurrentLinkedQueue<>();
 
-    private AlarmAcknowledgeQueue ackQueue = new AlarmAcknowledgeQueue();
-    
-    public AlarmEngine(List<Monitor<?>> monitors) {
+    private final OutgoingEventSink eventSink;
 
-        //this.alarmConfigs = alarmConfigs;
+    public AlarmEngine(List<Monitor<?>> monitors, OutgoingEventSink eventSink) {
+
+        this.eventSink = eventSink;
 
         for (Monitor<?> m : monitors){
             // if (!alarmConfigs.containsKey(m.getName())){
@@ -61,7 +60,8 @@ public class AlarmEngine {
             );
             AlarmState<T> alarmState = new AlarmState<>(initialAlarm);
             this.alarmStates.put(monitor.getName(), alarmState);
-            this.startupAlarms.offer(alarmState.toMessage());
+
+            this.eventSink.submit(alarmState.toMessage());
         }
 
         return initialState;
@@ -91,6 +91,7 @@ public class AlarmEngine {
         monitorState.setLastEvaluated(now);
         
         return message;
+
     }
 
     private <T> AlarmState<T> updateAlarmState(AlarmResult<T> result){
@@ -114,6 +115,7 @@ public class AlarmEngine {
         }
 
         current.update(result);
+
         return current;
     }
 
@@ -122,30 +124,24 @@ public class AlarmEngine {
         for (AlarmState<?> alarm : alarmStates.values()){
            if (alarm.getAlarmId().equals(alarmId)){
                 alarm.acknowledge();
-                this.ackQueue.submit(new AlarmAcknowledgeOut(alarmId, Instant.now(), alarm.getName()));
-                
-                return alarm.toMessage();
+                this.eventSink.submit(new AlarmAcknowledgeOut(alarmId, Instant.now(), alarm.getName()));
+
+                AlarmMessage<?> alarmMessage = alarm.toMessage();
+
+                this.eventSink.submit(alarmMessage);
+
+                return alarmMessage;
            }
         }
 
-                AlarmAcknowledgeFail failure = new AlarmAcknowledgeFail(
-                        alarmId,
-                        "Alarm doesn't exist or already acknowledged"
-                );
-                this.ackFailQueue.offer(failure);
-                return failure;
-    }
+        AlarmAcknowledgeFail failure = new AlarmAcknowledgeFail(
+            alarmId,
+            "Alarm doesn't exist or already acknowledged"
+        );
 
-    public AlarmMessage<?> pollStartupAlarm() {
-        return this.startupAlarms.poll();
-    }
+        this.eventSink.submit(failure);
 
-    public AlarmAcknowledgeQueue getAckQueue(){
-        return this.ackQueue;
-    }
-
-    public AlarmAcknowledgeFail pollAcknowledgeFail() {
-        return this.ackFailQueue.poll();
+        return failure;
     }
 
     @SuppressWarnings("unchecked")

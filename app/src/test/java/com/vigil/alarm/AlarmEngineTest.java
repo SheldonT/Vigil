@@ -16,6 +16,7 @@ import com.vigil.message.AlarmMessage;
 import com.vigil.message.TelemetryOut;
 import com.vigil.message.AlarmAcknowledgeFail;
 import com.vigil.message.VigilMessage;
+import com.vigil.dispatcher.OutgoingMessageQueue;
 import com.vigil.monitor.Monitor;
 
 class AlarmEngineTest {
@@ -59,6 +60,7 @@ class AlarmEngineTest {
 
     private NumericAlarmConfig config;
     private AlarmEvaluator<Double> evaluator;
+    private OutgoingMessageQueue outputMessages;
 
     @BeforeEach
     void buildConfig() {
@@ -75,10 +77,11 @@ class AlarmEngineTest {
         map.put("clearDelayMs",      0L);
         config = NumericAlarmConfig.fromMap("CPU", map);
         evaluator = new NumericAlarmEvaluator(config);
+        outputMessages = new OutgoingMessageQueue();
     }
 
     private AlarmEngine engineWith(StubMonitor monitor) {
-        return new AlarmEngine(List.of(monitor));
+        return new AlarmEngine(List.of(monitor), outputMessages);
     }
 
     private AlarmMessage<Double> evaluate(AlarmEngine engine, StubMonitor monitor) {
@@ -211,7 +214,7 @@ class AlarmEngineTest {
     void constructor_initializesEngineWithMonitorEvaluator() {
         TelemetryOut<Double> initialValue = new TelemetryOut<Double>("CPU", 50.0, Instant.now());
         StubMonitor monitor = new StubMonitor("CPU", initialValue, evaluator);
-        assertDoesNotThrow(() -> new AlarmEngine(List.of(monitor)));
+        assertDoesNotThrow(() -> new AlarmEngine(List.of(monitor), outputMessages));
     }
 
     @Test
@@ -227,18 +230,19 @@ class AlarmEngineTest {
         assertNotNull(event, "Expected an active alarm before acknowledging");
 
         VigilMessage acknowledged = engine.acknowledgeAlarm(event.alarmId());
-        VigilMessage outbound = engine.getAckQueue().poll();
+        VigilMessage outboundAcknowledgement = outputMessages.poll();
+        VigilMessage outboundAlarm = outputMessages.poll();
 
         assertNotNull(acknowledged, "Expected acknowledgement to return alarm state");
         assertInstanceOf(AlarmMessage.class, acknowledged, "Expected acknowledgement to return AlarmMessage");
         AlarmMessage<?> acknowledgedAlarm = (AlarmMessage<?>) acknowledged;
         assertTrue(acknowledgedAlarm.acknowledged(), "Alarm should be marked acknowledged");
         assertNotNull(acknowledgedAlarm.acknowledgedAt(), "Alarm should have acknowledged timestamp");
-        assertNotNull(outbound, "Expected outbound ALARM_ACKNOWLEDGED event");
-        assertInstanceOf(AlarmAcknowledgeOut.class, outbound, "Expected outbound acknowledgement event");
-        AlarmAcknowledgeOut outboundAck = (AlarmAcknowledgeOut) outbound;
+        assertInstanceOf(AlarmAcknowledgeOut.class, outboundAcknowledgement, "Expected outbound acknowledgement event");
+        AlarmAcknowledgeOut outboundAck = (AlarmAcknowledgeOut) outboundAcknowledgement;
         assertEquals(event.alarmId(), outboundAck.alarmId());
         assertEquals("CPU", outboundAck.source());
+        assertSame(acknowledged, outboundAlarm, "Expected the acknowledged alarm state to be dispatched");
     }
 
     @Test
@@ -249,13 +253,13 @@ class AlarmEngineTest {
 
         UUID unknownAlarmId = UUID.randomUUID();
         VigilMessage acknowledged = engine.acknowledgeAlarm(unknownAlarmId);
-        AlarmAcknowledgeOut outboundAck = engine.getAckQueue().poll();
-        AlarmAcknowledgeFail outboundFailure = engine.pollAcknowledgeFail();
+    VigilMessage outbound = outputMessages.poll();
 
         assertInstanceOf(AlarmAcknowledgeFail.class, acknowledged, "Unknown alarm id should return failure message");
-        assertNull(outboundAck, "Unknown alarm id should not enqueue success acknowledgement");
-        assertNotNull(outboundFailure, "Unknown alarm id should enqueue failure event");
+    assertInstanceOf(AlarmAcknowledgeFail.class, outbound, "Unknown alarm id should dispatch a failure event");
+    AlarmAcknowledgeFail outboundFailure = (AlarmAcknowledgeFail) outbound;
         assertEquals(unknownAlarmId, outboundFailure.alarmId());
+    assertNull(outputMessages.poll(), "Unknown alarm id should not dispatch additional messages");
     }
 
     @Test

@@ -9,7 +9,6 @@ import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.vigil.command.CommandType;
 import com.vigil.message.MessageType;
-import com.vigil.message.VigilMessage;
 
 import com.vigil.command.VigilCommand;
 import com.vigil.command.AlarmAcknowledgeIn;
@@ -39,9 +38,7 @@ public abstract class Listener {
             MessageType type = getMessageType(node);
 
             if (type != MessageType.COMMAND) {
-                throw new IllegalArgumentException(
-                    "Message is not a command message"
-                );
+               return Optional.empty();
             }
 
             CommandType commandType = getCommandType(node);

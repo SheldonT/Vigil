@@ -15,6 +15,7 @@ import com.vigil.message.AlarmAcknowledgeOut;
 import com.vigil.message.AlarmMessage;
 import com.vigil.message.TelemetryOut;
 import com.vigil.app.AppConfig;
+import com.vigil.message.VigilMessage;
 
 public class FileDispatcher extends Dispatcher{
 
@@ -49,21 +50,39 @@ public class FileDispatcher extends Dispatcher{
 
         this.currentFile = this.createFilePath();
     }
+
+    @Override
+    public void send(VigilMessage message){
+
+        if (message instanceof AlarmMessage<?>){
+
+            AlarmMessage<?> result = (AlarmMessage<?>) message;
+            String eventString = "STATUS => " + result.lastUpdated() + " - " + result.name() + " - " + result.alarmId() + " " + result.status() + " : " + result.value();
+            
+            this.writeLine(eventString);
+        } else if (message instanceof TelemetryOut<?>){
+
+            TelemetryOut<?> result = (TelemetryOut<?>)message;
+            
+            String telemetryString = "TELEMETRY => " + result.timestamp() + " - " + result.name() + " : " + result.value();
+            this.writeLine(telemetryString);
+        }
+    }
     
-    @Override
-    public void sendAlarm(AlarmMessage<?> result){
+    // @Override
+    // public void sendAlarm(AlarmMessage<?> result){
 
-        String eventString = "STATUS => " + result.lastUpdated() + " - " + result.name() + " - " + result.alarmId() + " " + result.status() + " : " + result.value();
+    //     String eventString = "STATUS => " + result.lastUpdated() + " - " + result.name() + " - " + result.alarmId() + " " + result.status() + " : " + result.value();
         
-        this.writeLine(eventString);
-    }
+    //     this.writeLine(eventString);
+    // }
 
-    @Override
-    public void sendValue(TelemetryOut<?> result){
-        String telemetryString = "TELEMETRY => " + result.timestamp() + " - " + result.name() + " : " + result.value();
+    // @Override
+    // public void sendValue(TelemetryOut<?> result){
+    //     String telemetryString = "TELEMETRY => " + result.timestamp() + " - " + result.name() + " : " + result.value();
 
-        this.writeLine(telemetryString);
-    }
+    //     this.writeLine(telemetryString);
+    // }
 
     @Override
     public void sendAlarmAcknowledgement(AlarmAcknowledgeOut acknowledgement){
