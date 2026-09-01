@@ -1,8 +1,8 @@
 package com.vigil.command;
 
-import com.vigil.message.MessageType;
+import com.fasterxml.jackson.databind.JsonNode;
 
 public interface VigilCommand {
-    MessageType type();
     CommandType commandType();
+    JsonNode payload();
 }

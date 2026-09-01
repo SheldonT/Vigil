@@ -2,6 +2,8 @@ package com.vigil.alarm;
 
 import java.time.Instant;
 
+import com.vigil.message.TelemetryOut;
+
 public class MonitorState<T> {
 
     private final String id;
@@ -19,6 +21,14 @@ public class MonitorState<T> {
         this.pendingSince = Instant.now();
         this.status = Status.OK;
         this.pendingStatus = Status.OK;
+    }
+
+    public TelemetryOut<T> toMessage() {
+        return new TelemetryOut<>(
+            this.id,
+            this.value,
+            this.stateEntered
+        );
     }
 
     public String getId(){

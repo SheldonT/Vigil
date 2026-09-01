@@ -1,12 +1,9 @@
 package com.vigil.alarm;
 
-import java.util.ArrayDeque;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Queue;
 import java.time.Instant;
-import java.util.concurrent.ConcurrentLinkedQueue;
 
 import com.vigil.message.AlarmAcknowledgeOut;
 import com.vigil.message.AlarmMessage;
@@ -142,6 +139,14 @@ public class AlarmEngine {
         this.eventSink.submit(failure);
 
         return failure;
+    }
+
+    public Map<String, MonitorState<?>> getMonitorStates () {
+        return monitorStates;
+    }
+
+    public Map<String, AlarmState<?>> getAlarmStates () {
+        return alarmStates;
     }
 
     @SuppressWarnings("unchecked")

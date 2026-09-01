@@ -2,6 +2,7 @@ package com.vigil.message;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.vigil.command.CommandType;
+import com.vigil.command.VigilCommand;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
@@ -10,7 +11,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 public record CommandMessage(
     @JsonProperty("commandType") CommandType commandType,
     @JsonProperty("payload") JsonNode payload
-) implements VigilMessage {
+) implements VigilMessage, VigilCommand {
 
     @Override
     public MessageType type() {

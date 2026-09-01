@@ -8,10 +8,10 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.vigil.command.CommandType;
+import com.vigil.message.CommandMessage;
 import com.vigil.message.MessageType;
 
 import com.vigil.command.VigilCommand;
-import com.vigil.command.AlarmAcknowledgeIn;
 
 public abstract class Listener {
 
@@ -41,9 +41,7 @@ public abstract class Listener {
                return Optional.empty();
             }
 
-            CommandType commandType = getCommandType(node);
-
-            return deserializeCommand(node, commandType);
+            return deserializeCommand(node);
 
         } catch (JsonProcessingException e) {
             throw new IllegalArgumentException(
@@ -92,28 +90,15 @@ public abstract class Listener {
     }
 
     private Optional<VigilCommand> deserializeCommand(
-        JsonNode node,
-        CommandType commandType
+        JsonNode node
     ) throws JsonProcessingException {
 
-        return switch (commandType) {
-
-            case ACKNOWLEDGE ->
-                Optional.of(
-                    objectMapper.treeToValue(
-                        node,
-                        AlarmAcknowledgeIn.class
-                    )
-                );
-
-            // case GET_STATE ->
-            //     Optional.of(
-            //         objectMapper.treeToValue(
-            //             node,
-            //             GetStateIn.class
-            //         )
-            //     );
-            };
+        return Optional.of(
+            objectMapper.treeToValue(
+                node,
+                CommandMessage.class
+            )
+        );
     }
 
 }

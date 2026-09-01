@@ -49,7 +49,7 @@ public class VigilClient {
             //create the alarm engine
             AlarmEngine alarmEngine = new AlarmEngine(monitors, outgoingMessageQueue);
 
-            CommandEngine commandEngine = new CommandEngine(alarmEngine);
+            CommandEngine commandEngine = new CommandEngine(alarmEngine, outgoingMessageQueue);
 
             //build a list of listeners (they depend on the alarm engine)
             List<Listener> listeners = loader.buildListeners(alarmEngine, commandEngine);
