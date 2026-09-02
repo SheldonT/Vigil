@@ -75,6 +75,7 @@ public class WebSocketListener extends Listener{
             @Override
             public void onMessage(String message) {
                 try {
+                    
                     deserialize(message).ifPresent(WebSocketListener.this.commandEngine::handleCommand);
                 } catch (Exception e) {
                     logger.warning("WebSocket listener error: " + e.getMessage());

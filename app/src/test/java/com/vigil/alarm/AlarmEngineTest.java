@@ -268,9 +268,11 @@ class AlarmEngineTest {
             {
               "type": "COMMAND",
               "commandType": "ACKNOWLEDGE",
-              "alarmId": "c6d1919b-5553-4fa9-823c-c74aa4b71511",
-              "deviceId": "nas-01",
-              "deviceName": "NAS"
+                            "payload": {
+                                "alarmId": "c6d1919b-5553-4fa9-823c-c74aa4b71511",
+                                "deviceId": "nas-01",
+                                "deviceName": "NAS"
+                            }
             }
             """;
 
@@ -287,13 +289,16 @@ class AlarmEngineTest {
         };
 
         com.vigil.command.VigilCommand message = listener.parse(json);
-        assertEquals(com.vigil.message.MessageType.COMMAND, message.type());
         assertEquals(com.vigil.command.CommandType.ACKNOWLEDGE, message.commandType());
-        assertInstanceOf(com.vigil.command.AlarmAcknowledgeIn.class, message);
+        assertInstanceOf(com.vigil.message.CommandMessage.class, message);
 
-        com.vigil.command.AlarmAcknowledgeIn ack = (com.vigil.command.AlarmAcknowledgeIn) message;
-        assertEquals(UUID.fromString("c6d1919b-5553-4fa9-823c-c74aa4b71511"), ack.alarmId());
-        assertEquals("nas-01", ack.deviceId());
-        assertEquals("NAS", ack.deviceName());
+        com.vigil.message.CommandMessage command =
+            (com.vigil.message.CommandMessage) message;
+        assertEquals(
+            "c6d1919b-5553-4fa9-823c-c74aa4b71511",
+            command.payload().get("alarmId").asText()
+        );
+        assertEquals("nas-01", command.payload().get("deviceId").asText());
+        assertEquals("NAS", command.payload().get("deviceName").asText());
     }
 }

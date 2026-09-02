@@ -40,7 +40,7 @@ public abstract class Listener {
             if (type != MessageType.COMMAND) {
                return Optional.empty();
             }
-
+            
             return deserializeCommand(node);
 
         } catch (JsonProcessingException e) {
