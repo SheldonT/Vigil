@@ -77,8 +77,6 @@ public class VigilLoop {
                 }
             }
 
-            //this.processAlarmAcknowledgeFailures();
-
             this.sleep(appConfig.getPollingIntervalMs());
         }
     }
@@ -91,20 +89,8 @@ public class VigilLoop {
         if (sendTelemetry) this.outputMessageQueue.submit(value);
         if (result != null) this.outputMessageQueue.submit(result);
 
-        // for (Dispatcher d : this.dispatchers){
-        //     if (sendTelemetry) d.sendValue(value);
-        //     if (result != null) d.sendAlarm(result);
-        // }
     }
 
-    // private void dispatchStartupAlarms() {
-    //     AlarmMessage<?> alarm;
-    //     while ((alarm = this.alarmEngine.pollStartupAlarm()) != null) {
-    //         //for (Dispatcher dispatcher : this.dispatchers) {
-    //         this.outputMessageQueue.submit(alarm);
-    //         //}
-    //     }
-    // }
 
     private void processOutputQueue() {
 

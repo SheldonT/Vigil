@@ -2,9 +2,6 @@ package com.vigil.alarm;
 
 import java.util.Map;
 
-// import com.vigil.exception.InvalidConfigurationException;
-// import com.vigil.config.ConfigValidator;
-
 public abstract class AlarmConfig<T> {
 
     private final String monitorName;

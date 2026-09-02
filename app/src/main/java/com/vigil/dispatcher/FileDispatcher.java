@@ -68,21 +68,6 @@ public class FileDispatcher extends Dispatcher{
             this.writeLine(telemetryString);
         }
     }
-    
-    // @Override
-    // public void sendAlarm(AlarmMessage<?> result){
-
-    //     String eventString = "STATUS => " + result.lastUpdated() + " - " + result.name() + " - " + result.alarmId() + " " + result.status() + " : " + result.value();
-        
-    //     this.writeLine(eventString);
-    // }
-
-    // @Override
-    // public void sendValue(TelemetryOut<?> result){
-    //     String telemetryString = "TELEMETRY => " + result.timestamp() + " - " + result.name() + " : " + result.value();
-
-    //     this.writeLine(telemetryString);
-    // }
 
     @Override
     public void sendAlarmAcknowledgement(AlarmAcknowledgeOut acknowledgement){

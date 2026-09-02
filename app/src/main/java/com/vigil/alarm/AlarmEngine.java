@@ -17,7 +17,6 @@ import java.util.UUID;
 
 public class AlarmEngine {
 
-    //private final Map<String, NumericAlarmConfig> alarmConfigs;
     private final Map<String, MonitorState<?>> monitorStates = new HashMap<>();
     private final Map<String, AlarmState<?>> alarmStates = new HashMap<>();
 
@@ -28,9 +27,6 @@ public class AlarmEngine {
         this.eventSink = eventSink;
 
         for (Monitor<?> m : monitors){
-            // if (!alarmConfigs.containsKey(m.getName())){
-            //     throw new IllegalStateException("Missing alarm configs for " + m.getName());
-            // }
 
             MonitorState<?> initialState = initializeState(m);
             this.monitorStates.put(m.getName(), initialState);

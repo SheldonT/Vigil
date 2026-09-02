@@ -53,7 +53,6 @@ public class ConfigLoader {
             Map<String, Object> monitorTable = ConfigValidator.requireMap(entry.getValue(), "Single Monitor Map");
 
             String monitorType = ConfigValidator.requireString(monitorTable, entry.getKey(), "type");
-            // Double telemetryDeadband = ConfigValidator.requireDouble(monitorTable, entry.getKey(), "telemetryDeadband");
 
             logger.info("Adding " + monitorType + " monitor to the list");
 

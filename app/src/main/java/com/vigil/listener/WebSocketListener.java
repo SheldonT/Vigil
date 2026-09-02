@@ -113,30 +113,6 @@ public class WebSocketListener extends Listener{
         this.client.close();
     }
 
-    // @Override
-    // protected void handleMessage(VigilMessage msg) {
-    //     switch (msg.type()) {
-
-    //         case ACKNOWLEDGE_ALARM -> {
-    //             AlarmAcknowledgeIn acknowledgement =
-    //                 (AlarmAcknowledgeIn) msg;
-
-    //             acknowledgeAlarm(acknowledgement.alarmId());
-    //         }
-
-    //         default ->
-    //             logger.warning(
-    //                 "Unsupported message type received by WebSocket Listener: " + msg.type()
-    //             );
-    //     }
-            
-    // }
-
-    // @Override
-    // public VigilMessage acknowledgeAlarm(UUID alarmId){
-    //     return this.ackCallback.apply(alarmId);
-    // }
-
     private void scheduleReconnect(String reason) {
         if (!this.running.get()) {
             return;

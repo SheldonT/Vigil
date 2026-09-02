@@ -111,20 +111,6 @@ public class WebSocketDispatcher extends Dispatcher{
         this.client.close();
     }
 
-    // @Override
-    // public void sendAlarm(AlarmMessage<?> result) {
-    //     String payload = this.serialize(result);
-
-    //     this.sendIfConnected(payload, "alarm");
-    // };
-
-    // @Override
-    // public void sendValue(TelemetryOut<?> value){
-    //     String payload = this.serialize(value);
-
-    //     this.sendIfConnected(payload, "telemetry");
-    // }
-
     @Override
     public void send(VigilMessage message){
         String payload = this.serialize(message);

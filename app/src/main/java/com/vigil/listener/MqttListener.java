@@ -69,25 +69,6 @@ public class MqttListener extends Listener {
         }
     }
 
-    // @Override
-    // protected void handleMessage(VigilMessage msg) {
-
-    //     switch (msg.type()) {
-
-    //         case ACKNOWLEDGE_ALARM -> {
-    //             AlarmAcknowledgeIn acknowledgement =
-    //                 (AlarmAcknowledgeIn) msg;
-
-    //             this.acknowledgeAlarm(acknowledgement.alarmId());
-    //         }
-
-    //         default ->
-    //             logger.warning(
-    //                 "Unsupported message type: " + msg.type()
-    //             );
-    //     }
-    // }
-
     @Override
     public void start(){
         this.connect();

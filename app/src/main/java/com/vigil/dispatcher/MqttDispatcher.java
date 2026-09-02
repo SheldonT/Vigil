@@ -46,7 +46,6 @@ public class MqttDispatcher extends Dispatcher{
         this.config = config;
 
         this.client = this.createClient(config);
-        //this.connect();
     }
 
     @Override
@@ -100,47 +99,16 @@ public class MqttDispatcher extends Dispatcher{
 
         String payload = this.serialize(result);
 
-        //String payload = result.lastUpdated()+ "," + result.alarmId() + "," + result.name() + "," + result.status() + "," + result.value();
-        //String topic = this.config.topic() + "/alarm";
-
         this.client.publishWith()
         .topic(this.config.topic)
         .payload(payload.getBytes())
         .send();
     }
 
-    // @Override
-    // public void sendAlarm(AlarmMessage<?> result){
-
-    //     String payload = this.serialize(result);
-
-    //     //String payload = result.lastUpdated()+ "," + result.alarmId() + "," + result.name() + "," + result.status() + "," + result.value();
-    //     //String topic = this.config.topic() + "/alarm";
-
-    //     this.client.publishWith()
-    //     .topic(this.config.topic)
-    //     .payload(payload.getBytes())
-    //     .send();
-    // }
-
-    // @Override
-    // public void sendValue(TelemetryOut<?> result){
-    //     //String payload = result.timestamp() + "," + result.name() + "," + result.value();
-    //     String payload = this.serialize(result);
-    //     //String topic = this.config.topic() + "/telemetry";
-        
-    //     this.client.publishWith()
-    //     .topic(this.config.topic())
-    //     .payload(payload.getBytes())
-    //     .send();
-    // }
-
     @Override
     public void sendAlarmAcknowledgement(AlarmAcknowledgeOut acknowledgement){
         
         String payload = this.serialize(acknowledgement);
-        //String payload = acknowledgement.acknowledgedAt()+ "," + acknowledgement.alarmId() + "," + acknowledgement.source() + "," + "ACK";
-        //String topic = this.config.topic() + "/acknowledge";
 
         this.client.publishWith()
         .topic(this.config.topic())
